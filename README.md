@@ -1,46 +1,48 @@
-# Training Reports (pacote Unity)
+# Training Reports (Unity package)
 
-Sistema de **aulas, pontuação e relatório em PDF** para simuladores de máquinas agrícolas em Unity (C#).
-Extraído de um simulador profissional de treinamento; nomes de empresa e marcas foram removidos.
+Lessons, scoring and **PDF performance reports** for agricultural machine simulators in Unity (C#).
+Extracted from a professional training simulator; company names and branding were removed.
 
-## Instalação
+## Installation
 
-1. No Unity: **Window > Package Manager > + > Add package from git URL...**
-2. Cole:
+1. In Unity: **Window > Package Manager > + > Add package from git URL...**
+2. Paste:
 
 ```
 https://github.com/schaeffergui/unity-training-reports.git
 ```
 
-Para a versão em desenvolvimento: `https://github.com/schaeffergui/unity-training-reports.git#dev`
+For the development version, append `#dev`:
+`https://github.com/schaeffergui/unity-training-reports.git#dev`
 
-Também funciona por `Packages/manifest.json`:
+Or add it to `Packages/manifest.json`:
 
 ```json
 "com.schaeffergui.training-reports": "https://github.com/schaeffergui/unity-training-reports.git"
 ```
 
-## Requisitos
-- Unity 6 (6000.0 ou superior) e `com.unity.ugui` (instalado automaticamente).
-- Instale no seu projeto: [Rewired](https://assetstore.unity.com/packages/tools/utilities/rewired-21676), Vehicle Physics Pro, iTextSharp e Docnet (pacotes de terceiros, não incluídos).
-- O código usa classes do simulador (`RDSceneManager`, `RDStudent`, controladores de máquina). Como o pacote não tem `asmdef`, ele compila junto com o seu projeto e encontra essas classes. Desacoplar isso por interfaces está no roadmap.
+## Requirements
+- Unity 6 (6000.0 or newer) and `com.unity.ugui` (installed automatically).
+- Install in your project: [Rewired](https://assetstore.unity.com/packages/tools/utilities/rewired-21676), Vehicle Physics Pro, iTextSharp and Docnet (third-party, not included).
+- The code uses simulator classes (`RDSceneManager`, `RDStudent`, machine controllers). The package has no `asmdef`, so it compiles together with your project and finds those classes. Decoupling them through interfaces is on the roadmap.
 
-## O que o pacote faz
+## What the package does
 
-| Parte | Arquivos | Descrição |
+| Part | Files | Description |
 |---|---|---|
-| Aulas e tarefas | `Runtime/Training/TrainingManager.cs` | Aulas de trator, plantadeira, pulverizador e colheitadeira: tarefas em sequência, pontuação e rastreio de desempenho |
-| Painel de tarefas | `Runtime/Training/TrainingTaskUI.cs` | Interface das tarefas durante a aula |
-| Relatório em PDF | `Runtime/Reports/LessonPdfExporter.cs` | PDF com notas, gráficos de velocidade e RPM, mapa do trajeto, observações e recomendações, perda de grãos e eficiência |
-| Fim de aula | `Runtime/Reports/LessonReportUI.cs`, `LessonReportData.cs` | Resumo ao concluir a aula |
-| Visualizador de PDF | `Runtime/UI/LessonPdfViewer.cs`, `Runtime/Reports/LessonPdfDocument.cs` | Abre o PDF no jogo, renderização assíncrona com cancelamento, validação de caminho e cópia segura |
-| Testes | `Tests/`, `Editor/` | Testes NUnit da pontuação por área de implemento e verificações do visualizador |
+| Lessons and tasks | `Runtime/Training/TrainingManager.cs` | Tractor, planting, spraying and harvesting lessons: sequenced tasks, scoring and performance tracking |
+| Task panel | `Runtime/Training/TrainingTaskUI.cs` | In-lesson task interface |
+| PDF report | `Runtime/Reports/LessonPdfExporter.cs` | PDF with grades, speed and RPM charts, route map, observations and recommendations, grain loss and efficiency |
+| End-of-lesson screen | `Runtime/Reports/LessonReportUI.cs`, `LessonReportData.cs` | Summary shown when the lesson ends |
+| PDF viewer | `Runtime/UI/LessonPdfViewer.cs`, `Runtime/Reports/LessonPdfDocument.cs` | Opens the PDF in-game: asynchronous rendering with cancellation, path validation and safe copy |
+| Tests | `Tests/`, `Editor/` | NUnit tests for implement-footprint scoring and PDF viewer checks |
 
-## Destaques técnicos
-- Pontuação que penaliza operação repetida ou fora da zona, proporcional à área do implemento.
-- Observações geradas a partir dos erros do aluno e estimativa de desperdício por retrabalho.
-- Visualizador que rejeita URLs, caminhos de rede e arquivos inválidos ou grandes demais.
+## Technical highlights
+- Scoring that penalizes repeated or out-of-zone operation, proportional to the implement footprint.
+- Observations generated from the student's mistakes and an estimate of waste caused by rework.
+- A PDF viewer that rejects URLs, network paths and invalid or oversized files.
 
-## Notas
-- Textos da interface em português (pt-BR). Logos e imagens do relatório não estão incluídos.
-- Sem licença de reuso: todos os direitos reservados ao autor, salvo indicação futura.
+## Notes
+- All text is in English. A few UI object lookups in `LessonReportUI.cs` and `TrainingManager.cs` still match scene object names such as `Treinamento`, `Erro` and `BraçoL`, because those names live in the simulator prefabs, which are not included.
+- Logos and report images are not included.
+- No reuse license: all rights reserved to the author unless stated otherwise.

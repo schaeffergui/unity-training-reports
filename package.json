@@ -3,7 +3,7 @@
   "displayName": "Training Reports",
   "version": "0.2.0",
   "unity": "6000.0",
-  "description": "Aulas de treinamento, pontuação e relatório em PDF para simuladores de máquinas agrícolas em Unity.",
+  "description": "Training lessons, scoring and PDF reports for agricultural machine simulators in Unity.",
   "keywords": ["training", "simulator", "pdf", "report", "agriculture"],
   "author": { "name": "Guilherme Schaeffer", "url": "https://schaeffergui.github.io/" },
   "dependencies": { "com.unity.ugui": "2.0.0" }
