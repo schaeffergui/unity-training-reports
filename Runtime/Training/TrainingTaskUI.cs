@@ -1,19 +1,25 @@
 using System.Collections.Generic;
+using System;
+using TrainingReports;
+using TrainingReports.Training;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using static RDSceneManager;
 
-public class TrainingTaskUI : MonoBehaviour
+public sealed class TrainingTaskUI : MonoBehaviour
 {
-    private static readonly Color PanelColor = RDCompanyPalette.Hex(0xF7F5FC, 0.94f);
-    private static readonly Color TaskCardColor = RDCompanyPalette.Hex(0xFFFFFF, 0.88f);
-    private static readonly Color TaskBorderColor = RDCompanyPalette.Hex(0xCDBAF2, 0.9f);
-    private static readonly Color PendingIconColor = RDCompanyPalette.Hex(0x7B55B7);
-    private static readonly Color ActiveIconColor = RDCompanyPalette.Hex(0x9D53E0);
-    private static readonly Color CompletedIconColor = RDCompanyPalette.Hex(0x22A447);
-    private static readonly Color FailedIconColor = RDCompanyPalette.Hex(0xD83A4E);
     private static Sprite roundedPanelSprite;
+    private ITrainingTheme theme = DefaultTrainingTheme.Instance;
+    public ITrainingTheme Theme
+    {
+        get => theme ?? DefaultTrainingTheme.Instance;
+        set
+        {
+            theme = value ?? DefaultTrainingTheme.Instance;
+            if (isActiveAndEnabled) ApplyThemeStyle();
+        }
+    }
+    public event Action<int, bool> TaskFinished;
 
     [System.Serializable]
     public class TaskItem
@@ -29,7 +35,7 @@ public class TrainingTaskUI : MonoBehaviour
         public Color completedColor = Color.green;
         public Color incompletedColor = Color.red;
 
-        [Header("Check-in iconss")]
+        [Header("Task Icons")]
         public Sprite pendingSprite;
         public Sprite inProgressSprite;
         public Sprite completedSprite;
@@ -43,7 +49,7 @@ public class TrainingTaskUI : MonoBehaviour
 
     void Start()
     {
-        ApplyCompanyStyle();
+        ApplyThemeStyle();
 
         foreach (var task in tasks)
         {
@@ -53,11 +59,16 @@ public class TrainingTaskUI : MonoBehaviour
             }
         }
 
-        taskStatuses = new List<TaskStatus>(new TaskStatus[tasks.Count]);
         ResetTasks();
     }
 
-    private void ApplyCompanyStyle()
+    private Color ThemeColor(TrainingThemeColor role)
+    {
+        TrainingColor value = Theme.GetColor(role);
+        return new Color32(value.Red, value.Green, value.Blue, value.Alpha);
+    }
+
+    private void ApplyThemeStyle()
     {
         RectTransform panelRect = transform as RectTransform;
         if (panelRect == null)
@@ -71,7 +82,7 @@ public class TrainingTaskUI : MonoBehaviour
         {
             panelImage.sprite = roundedSprite;
             panelImage.type = Image.Type.Sliced;
-            panelImage.color = PanelColor;
+            panelImage.color = ThemeColor(TrainingThemeColor.Window);
             panelImage.raycastTarget = false;
         }
 
@@ -80,7 +91,7 @@ public class TrainingTaskUI : MonoBehaviour
         {
             panelOutline = gameObject.AddComponent<Outline>();
         }
-        panelOutline.effectColor = RDCompanyPalette.Hex(0x5816C1, 0.85f);
+        panelOutline.effectColor = ThemeColor(TrainingThemeColor.Border);
         panelOutline.effectDistance = new Vector2(2f, -2f);
         panelOutline.useGraphicAlpha = true;
 
@@ -145,7 +156,7 @@ public class TrainingTaskUI : MonoBehaviour
             }
 
             text.text = "TASKS";
-            text.color = RDCompanyPalette.BrandPurple;
+            text.color = ThemeColor(TrainingThemeColor.Brand);
             text.fontSize = 38f;
             text.fontStyle = FontStyles.Bold;
             text.alignment = TextAlignmentOptions.MidlineLeft;
@@ -166,8 +177,8 @@ public class TrainingTaskUI : MonoBehaviour
 
     private void StyleAccent(RectTransform panelRect)
     {
-        Transform existing = transform.Find("Company Accent");
-        GameObject accent = existing != null ? existing.gameObject : new GameObject("Company Accent", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
+        Transform existing = transform.Find("Task Accent");
+        GameObject accent = existing != null ? existing.gameObject : new GameObject("Task Accent", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
         RectTransform accentRect = accent.GetComponent<RectTransform>();
         accentRect.SetParent(panelRect, false);
         accentRect.anchorMin = new Vector2(0f, 1f);
@@ -177,7 +188,7 @@ public class TrainingTaskUI : MonoBehaviour
         accentRect.sizeDelta = new Vector2(0f, 8f);
 
         Image accentImage = accent.GetComponent<Image>();
-        accentImage.color = RDCompanyPalette.BrandPurple;
+        accentImage.color = ThemeColor(TrainingThemeColor.Brand);
         accentImage.raycastTarget = false;
         accent.GetComponent<LayoutElement>().ignoreLayout = true;
         accentRect.SetAsLastSibling();
@@ -201,7 +212,7 @@ public class TrainingTaskUI : MonoBehaviour
         {
             rowImage.sprite = roundedSprite;
             rowImage.type = Image.Type.Sliced;
-            rowImage.color = TaskCardColor;
+            rowImage.color = ThemeColor(TrainingThemeColor.Surface);
             rowImage.raycastTarget = false;
         }
 
@@ -210,11 +221,11 @@ public class TrainingTaskUI : MonoBehaviour
         {
             rowOutline = rowRect.gameObject.AddComponent<Outline>();
         }
-        rowOutline.effectColor = TaskBorderColor;
+        rowOutline.effectColor = ThemeColor(TrainingThemeColor.Border);
         rowOutline.effectDistance = new Vector2(1.25f, -1.25f);
         rowOutline.useGraphicAlpha = true;
 
-        task.label.color = RDCompanyPalette.DenseText;
+        task.label.color = ThemeColor(TrainingThemeColor.PrimaryText);
         task.label.fontSize = 32f;
         task.label.enableAutoSizing = true;
         task.label.fontSizeMin = 24f;
@@ -258,10 +269,10 @@ public class TrainingTaskUI : MonoBehaviour
         rowLayout.preferredHeight = rowHeight;
         rowRect.SetSiblingIndex(index + 1);
 
-        task.pendingColor = PendingIconColor;
-        task.inProgressColor = ActiveIconColor;
-        task.completedColor = CompletedIconColor;
-        task.incompletedColor = FailedIconColor;
+        task.pendingColor = ThemeColor(TrainingThemeColor.SecondaryText);
+        task.inProgressColor = ThemeColor(TrainingThemeColor.Brand);
+        task.completedColor = new Color32(34, 164, 71, 255);
+        task.incompletedColor = ThemeColor(TrainingThemeColor.Warning);
     }
 
     private static Sprite GetRoundedPanelSprite()
@@ -322,10 +333,11 @@ public class TrainingTaskUI : MonoBehaviour
     }
 
 
-    public void SetOperation(Operations operation) { }
+    public void SetOperation(TrainingOperation operation) { }
 
     public void SetTaskInProgress(int index)
     {
+        EnsureTaskStatuses();
         if (IsValidIndex(index))
         {
             taskStatuses[index] = TaskStatus.InProgress;
@@ -336,25 +348,22 @@ public class TrainingTaskUI : MonoBehaviour
 
     public void SetTaskCompleted(int index, bool isCompleted)
     {
+        EnsureTaskStatuses();
+        if (!IsValidIndex(index)) return;
+
         if (isCompleted)
         {
-            if (IsValidIndex(index))
-            {
-                taskStatuses[index] = TaskStatus.Completed;
-                var task = tasks[index];
-                SetTaskState(task, $"Task {index + 1}: Completed", task.completedColor, task.completedSprite);
-            }
+            taskStatuses[index] = TaskStatus.Completed;
+            var task = tasks[index];
+            SetTaskState(task, $"Task {index + 1}: Completed", task.completedColor, task.completedSprite);
         }
         else
         {
-            if (IsValidIndex(index))
-            {
-                taskStatuses[index] = TaskStatus.Incompleted;
-                var task = tasks[index];
-                SetTaskState(task, $"Task {index + 1}: Not completed", task.incompletedColor, task.incompletedSprite);
-            }
+            taskStatuses[index] = TaskStatus.Incompleted;
+            var task = tasks[index];
+            SetTaskState(task, $"Task {index + 1}: Not completed", task.incompletedColor, task.incompletedSprite);
         }
-        TrainingManager.Instance.OnTaskFinished(index, isCompleted);
+        TaskFinished?.Invoke(index, isCompleted);
     }
 
 
@@ -375,6 +384,7 @@ public class TrainingTaskUI : MonoBehaviour
 
     public void ResetTasks()
     {
+        EnsureTaskStatuses();
         for (int i = 0; i < tasks.Count; i++)
         {
             if (IsValidIndex(i))
@@ -387,6 +397,7 @@ public class TrainingTaskUI : MonoBehaviour
 
     public void UpdateTaskProgress(int index)
     {
+        EnsureTaskStatuses();
         if (IsValidIndex(index))
         {
             var task = tasks[index];
@@ -405,10 +416,17 @@ public class TrainingTaskUI : MonoBehaviour
 
     public bool IsTaskCompleted(int index)
     {
+        EnsureTaskStatuses();
         bool result = IsValidIndex(index) && taskStatuses[index] == TaskStatus.Completed;
         return result;
     }
 
+    private void EnsureTaskStatuses()
+    {
+        if (taskStatuses == null) taskStatuses = new List<TaskStatus>();
+        while (taskStatuses.Count < tasks.Count) taskStatuses.Add(TaskStatus.Pending);
+        if (taskStatuses.Count > tasks.Count) taskStatuses.RemoveRange(tasks.Count, taskStatuses.Count - tasks.Count);
+    }
 
     private bool IsValidIndex(int index)
     {
