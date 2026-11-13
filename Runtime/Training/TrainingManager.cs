@@ -108,7 +108,7 @@ public class TrainingManager : MonoBehaviour
         pdfExporter = FindObjectOfType<LessonPdfExporter>();
         if (pdfExporter == null)
         {
-            Debug.LogWarning("LessonPdfExporter não encontrado. Criando um novo...");
+            Debug.LogWarning("LessonPdfExporter not found. Creating a new one...");
             GameObject exporterGO = new GameObject("LessonPdfExporter");
             pdfExporter = exporterGO.AddComponent<LessonPdfExporter>();
         }
@@ -245,7 +245,7 @@ public class TrainingManager : MonoBehaviour
     private IEnumerator TractorTraining(TrainingTaskUI taskUI)
     {
         StartTimer();
-        TrainingText.text = "Trator na estrada";
+        TrainingText.text = "Tractor on the road";
         GameObject planterGO = null;
         GameObject machineBody = null;
 
@@ -283,7 +283,7 @@ public class TrainingManager : MonoBehaviour
             yield return new WaitForSeconds(1f);
 
         taskUI?.SetTaskCompleted(0, true);
-        RegisterTaskResult(0, true, "O trator foi ligado corretamente.");
+        RegisterTaskResult(0, true, "The tractor was started correctly.");
         yield return new WaitForSeconds(1f);
         #endregion
 
@@ -326,7 +326,7 @@ public class TrainingManager : MonoBehaviour
     private IEnumerator PlantingTraining(TrainingTaskUI taskUI)
     {
         StartTimer();
-        TrainingText.text = "Plantação";
+        TrainingText.text = "Planting";
         RDTractorController tractor = null;
         GameObject machineBody = null;
         GameObject machineSeeder = null;
@@ -354,7 +354,7 @@ public class TrainingManager : MonoBehaviour
             yield return new WaitForSeconds(1f);
 
         taskUI?.SetTaskCompleted(0, true);
-        RegisterTaskResult(0, true, "O trator foi ligado corretamente.");
+        RegisterTaskResult(0, true, "The tractor was started correctly.");
         yield return new WaitForSeconds(1f);
         #endregion
 
@@ -368,7 +368,7 @@ public class TrainingManager : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
         }
         taskUI?.SetTaskCompleted(1, task1Success);
-        RegisterTaskResult(1, task1Success, task1Success ? "Implemento levantado corretamente." : "Aceleração indevida ao levantar o implemento.");
+        RegisterTaskResult(1, task1Success, task1Success ? "Implement raised correctly." : "Improper acceleration while raising the implement.");
         yield return new WaitForSeconds(1f);
         #endregion
 
@@ -383,7 +383,7 @@ public class TrainingManager : MonoBehaviour
             if (tracker.GetProgressPercent() > 42f)
             {
                 taskUI?.SetTaskCompleted(2, true);
-                RegisterTaskResult(2, true, "Plantio realizado com sucesso.");
+                RegisterTaskResult(2, true, "Planting completed successfully.");
                 Garage.SetActive(true);
                 break;
             }
@@ -402,7 +402,7 @@ public class TrainingManager : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
         }
         taskUI.SetTaskCompleted(3, task3Success);
-        RegisterTaskResult(3, task3Success, task3Success ? "Implemento recolhido com sucesso." : "Movimentação indevida ao ao levantar o implemento ");
+        RegisterTaskResult(3, task3Success, task3Success ? "Implement retracted successfully." : "Improper movement while raising the implement");
         yield return new WaitForSeconds(1f);
         #endregion
 
@@ -415,7 +415,7 @@ public class TrainingManager : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
         }
         taskUI?.SetTaskCompleted(4, true);
-        RegisterTaskResult(4, true, "Veículo guardado na garagem.");
+        RegisterTaskResult(4, true, "Vehicle stored in the garage.");
         #endregion
 
         isRunning = false;
@@ -425,7 +425,7 @@ public class TrainingManager : MonoBehaviour
     private IEnumerator SprayingTraining(TrainingTaskUI taskUI)
     {
         StartTimer();
-        TrainingText.text = "Pulverização";
+        TrainingText.text = "Spraying";
         RDSprayerController sprayer = null;
         GameObject machineBody = null;
         GameObject machineArmL = null;
@@ -463,7 +463,7 @@ public class TrainingManager : MonoBehaviour
         {
             if (sprayer.IsPumpOn || sprayer.IsMixerOn)
             {
-                failReason = "Bomba ou misturador ligados antes do motor.";
+                failReason = "Pump or mixer switched on before the engine.";
                 break;
             }
             yield return new WaitForSeconds(0.5f);
@@ -475,12 +475,12 @@ public class TrainingManager : MonoBehaviour
             {
                 if (sprayer.IsMixerOn)
                 {
-                    failReason = "Misturador ligado antes da bomba.";
+                    failReason = "Mixer switched on before the pump.";
                     break;
                 }
                 if (!RDVehicles.Player.EngineWorking)
                 {
-                    failReason = "Motor desligado antes de ligar a bomba.";
+                    failReason = "Engine off before switching on the pump.";
                     break;
                 }
                 yield return new WaitForSeconds(0.5f);
@@ -498,7 +498,7 @@ public class TrainingManager : MonoBehaviour
                 }
                 if (!RDVehicles.Player.EngineWorking)
                 {
-                    failReason = "Motor desligado antes de ligar o misturador.";
+                    failReason = "Engine off before switching on the mixer.";
                     break;
                 }
                 yield return new WaitForSeconds(0.5f);
@@ -509,7 +509,7 @@ public class TrainingManager : MonoBehaviour
 
         taskUI?.SetTaskCompleted(0, taskSuccess);
         TrainingManager.Instance.RegisterTaskResult(0, taskSuccess, taskSuccess
-            ? "O motor foi ligado corretamente, seguindo o procedimento adequado (motor → bomba → misturador)."
+            ? "The engine was started correctly, following the proper procedure (engine → pump → mixer)."
             : $"Falha: {failReason}");
 
         yield return new WaitForSeconds(1f);
@@ -541,8 +541,8 @@ public class TrainingManager : MonoBehaviour
         taskUI.SetTaskCompleted(1, setTask1);
 
         TrainingManager.Instance.RegisterTaskResult(1, setTask1, setTask1
-        ? "Os braços foram abertos corretamente, seguindo o procedimento adequado."
-        : "Os braços não foram abertos conforme o procedimento correto.");
+        ? "The arms were opened correctly, following the proper procedure."
+        : "The arms were not opened according to the correct procedure.");
 
         yield return new WaitForSeconds(1f);
         #endregion
@@ -561,7 +561,7 @@ public class TrainingManager : MonoBehaviour
                 yield break;
 
             float progress = tracker.GetProgressPercent();
-            //Debug.Log($"[Tarefa 2] Progresso do plantio: {progress:F1}%");
+            //Debug.Log($"[Task 2] Planting progress: {progress:F1}%");
             taskUI?.UpdateTaskProgress(2);
 
             if (progress > 33f)
@@ -576,8 +576,8 @@ public class TrainingManager : MonoBehaviour
         taskUI?.SetTaskCompleted(2, setTask2);
 
         TrainingManager.Instance.RegisterTaskResult(2, setTask2, setTask2
-        ? "Pulverização realizada corretamente."
-        : "Pulverização realizada de forma incorreta.");
+        ? "Spraying performed correctly."
+        : "Spraying performed incorrectly.");
 
         #endregion
 
@@ -606,8 +606,8 @@ public class TrainingManager : MonoBehaviour
         }
         taskUI?.SetTaskCompleted(3, setTask3);
         TrainingManager.Instance.RegisterTaskResult(3, setTask3, setTask3
-        ? "Os braços foram fechados corretamente, seguindo o procedimento adequado."
-        : "Os braços não foram fechados conforme o procedimento correto.");
+        ? "The arms were closed correctly, following the proper procedure."
+        : "The arms were not closed according to the correct procedure.");
 
         yield return new WaitForSeconds(1f);
         #endregion
@@ -632,8 +632,8 @@ public class TrainingManager : MonoBehaviour
         taskUI?.SetTaskCompleted(4, setTask4);
 
         TrainingManager.Instance.RegisterTaskResult(4, setTask4, setTask4
-        ? "O veículo foi posicionado corretamente na área de armazenamento."
-        : "O veículo não foi posicionado corretamente na área de armazenamento.");
+        ? "The vehicle was positioned correctly in the storage area."
+        : "The vehicle was not positioned correctly in the storage area.");
         #endregion
 
         isRunning = false;
@@ -704,7 +704,7 @@ public class TrainingManager : MonoBehaviour
             yield return new WaitForSeconds(1f);
         }
         taskUI?.SetTaskCompleted(0, true);
-        RegisterTaskResult(0, true, "Veículo ligado corretamente.");
+        RegisterTaskResult(0, true, "Vehicle started correctly.");
         yield return new WaitForSeconds(1f);
         #endregion
 
@@ -713,7 +713,7 @@ public class TrainingManager : MonoBehaviour
         taskUI?.SetTargetHeight(1, targetHeight);
         float targetHarvestHeight = RDSceneManager.GetHarvestHeightForCrop(RDSceneManager.Crop);
         float tolerance = 0.1f;
-        //Debug.Log($"[HarvestingTraining] Altura alvo para {RDSceneManager.Crop}: {targetHarvestHeight:F2}");
+        //Debug.Log($"[HarvestingTraining] Target height for {RDSceneManager.Crop}: {targetHarvestHeight:F2}");
 
         while (Mathf.Abs(harvester.CombinHeight - targetHarvestHeight + 0.1f) > tolerance)
         {
@@ -723,7 +723,7 @@ public class TrainingManager : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
         }
         taskUI?.SetTaskCompleted(1, true);
-        RegisterTaskResult(1, true, "Altura do molinete ajustada corretamente.");
+        RegisterTaskResult(1, true, "Reel height adjusted correctly.");
         yield return new WaitForSeconds(1f);
         #endregion
 
@@ -759,8 +759,8 @@ public class TrainingManager : MonoBehaviour
         TrainingManager.Instance.RegisterTaskResult(2,
             success,
             success
-                ? "A colheita foi realizada corretamente, respeitando a altura recomendada."
-                : "A colheita foi realizada acima da altura recomendada, comprometendo a qualidade da operação."
+                ? "Harvesting was done correctly, respecting the recommended height."
+                : "Harvesting was done above the recommended height, compromising operation quality."
         );
 
         Truck.SetActive(true);
@@ -788,8 +788,8 @@ public class TrainingManager : MonoBehaviour
             3,
             Task3HarvestingSuccess,
             Task3HarvestingSuccess
-                ? "O molinete foi desligado corretamente."
-                : "Falha: O molinete não foi desligado antes de se aproximar do caminhão."
+                ? "The reel was switched off correctly."
+                : "Failure: The reel was not switched off before approaching the truck."
         );
 
         #endregion
@@ -811,8 +811,8 @@ public class TrainingManager : MonoBehaviour
         taskUI?.SetTaskCompleted(4, task4Success);
 
         RegisterTaskResult(4, task4Success, task4Success
-            ? "Descarga realizada com sucesso."
-            : "A descarga não foi concluída corretamente.");
+            ? "Unloading completed successfully."
+            : "Unloading was not completed correctly.");
 
         if (Garage != null)
         {
@@ -838,8 +838,8 @@ public class TrainingManager : MonoBehaviour
         taskUI?.SetTaskCompleted(5, task5Success);
 
         RegisterTaskResult(5, task5Success, task5Success
-            ? "Máquina guardada com sucesso e tubo fechado."
-            : "Máquina não foi guardada corretamente. Você entrou na garagem com o tubo de descarga aberto");
+            ? "Machine stored successfully with the pipe closed."
+            : "Machine was not stored correctly. You entered the garage with the unloading pipe open");
 
         #endregion
 
@@ -877,7 +877,7 @@ public class TrainingManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Não foi possível gerar o relatório: RDALessonReportController não está disponível.");
+            Debug.LogError("Could not generate the report: RDALessonReportController is not available.");
         }
 
         if (RDVehicles.Player != null)
@@ -926,7 +926,7 @@ public class TrainingManager : MonoBehaviour
         {
             isRunning = false;
 
-            TrainingText.text = "Pulverização";
+            TrainingText.text = "Spraying";
             SprayingTrainingUIObject.SetActive(false);
             AudioListener.pause = true;
             Report.SetActive(true);
@@ -937,7 +937,7 @@ public class TrainingManager : MonoBehaviour
         {
             isRunning = false;
 
-            TrainingText.text = "Plantação";
+            TrainingText.text = "Planting";
             SprayingTrainingUIObject.SetActive(false);
             AudioListener.pause = true;
             Report.SetActive(true);
