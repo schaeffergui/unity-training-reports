@@ -1,0 +1,57 @@
+
+# Unity generated folders and local artifacts
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+/[Bb]uild/
+/[Bb]uilds/
+
+# Host test project (the repository is only the package; the project that
+# opens it for development is local and not versioned)
+/Assets/
+/Assets.meta
+/Packages/
+/Packages.meta
+/ProjectSettings/
+/ProjectSettings.meta
+
+# Editor solutions and user preferences
+/.vs/
+/.idea/
+/.vscode/
+/.vsconfig
+*.csproj
+*.sln
+*.slnx
+*.user
+*.userprefs
+*.pidb
+*.suo
+*.pdb
+*.pdb.meta
+*.mdb
+*.mdb.meta
+*.opendb
+*.VC.db
+*.tmp
+*.tmp.meta
+*.bak
+*.bak.meta
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Installation packages and diagnostic dumps
+*.unitypackage
+*.unitypackage.meta
+/sysinfo.txt
+/crash-report*
+
+# Generated reports and local test output
+/Reports
+/Screenshots
+*.log
