@@ -17,7 +17,7 @@ public sealed class CropOperationScoringTests
         root = new GameObject("Crop operation scoring test");
         root.SetActive(false);
         root.AddComponent<BoxCollider>().size = new Vector3(10f, 2f, 10f);
-        // Os scripts da cena pertencem à Assembly-CSharp, que não pode ser referenciada por uma asmdef de testes.
+        // The scene scripts belong to Assembly-CSharp, which cannot be referenced by a test asmdef.
         tracker = root.AddComponent(Type.GetType("PlantingZoneTracker, Assembly-CSharp", true));
         manager = root.AddComponent(Type.GetType("TrainingManager, Assembly-CSharp", true));
         SetField(tracker, "GridResolution", 10f);
@@ -245,7 +245,7 @@ public sealed class CropOperationScoringTests
 
         tracker.GetType().GetMethod("ClearFootprintContinuity", PrivateInstance).Invoke(tracker, null);
         record.Invoke(tracker, new object[] { second, 6f, 2f });
-        // Duas das cinco células foram replantadas, e uma ficou fora do talhão.
+        // Two of the five cells were replanted, and one was outside the field.
         Assert.That(Value<float>(manager, "WastedSeeds"), Is.EqualTo(2.4f).Within(0.001f));
         Assert.That(Value<float>(manager, "WastedFuelLiters"), Is.EqualTo(0.8f).Within(0.001f));
         Assert.That(Value<float>(manager, "CorrectPercentage"), Is.EqualTo(70f));
