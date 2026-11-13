@@ -1,0 +1,14 @@
+{
+  "name": "TrainingReports.SimulatorAdapter",
+  "rootNamespace": "TrainingReports.Samples",
+  "references": ["TrainingReports.Core", "TrainingReports.Training"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
