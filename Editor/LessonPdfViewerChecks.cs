@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 public static class LessonPdfViewerChecks
 {
-    public static string Status { get; private set; } = "Não iniciado";
+    public static string Status { get; private set; } = "Not started";
     private static readonly List<string> Passed = new List<string>();
     private static readonly BindingFlags PrivateInstance = BindingFlags.Instance | BindingFlags.NonPublic;
     private static string fixturePath;
@@ -24,7 +24,7 @@ public static class LessonPdfViewerChecks
     {
         if (!Application.isPlaying || UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "MainMenu")
         {
-            Debug.LogWarning("Execute a verificação do PDF na MainMenu em Play Mode.");
+            Debug.LogWarning("Run the PDF check in the MainMenu in Play Mode.");
             return;
         }
         if (Status == "Executando") return;
@@ -39,7 +39,7 @@ public static class LessonPdfViewerChecks
             await Task.Run(() => CheckDocument(folder));
             await CheckViewer();
             await CheckExporter(folder);
-            Status = "Aprovado: " + Passed.Count + " verificações";
+            Status = "Passed: " + Passed.Count + " checks";
             Debug.Log(Status + "\n" + string.Join("\n", Passed));
         }
         catch (Exception exception)
@@ -59,19 +59,19 @@ public static class LessonPdfViewerChecks
     {
         using (var document = LessonPdfDocument.Load(fixturePath, CancellationToken.None))
         {
-            Check(document.PageSizes.Length == 4, "Leitura local de quatro páginas");
+            Check(document.PageSizes.Length == 4, "Local read of four pages");
             var image = document.Render(0, 900, CancellationToken.None);
-            Check(image.Width == 635 && image.Height == 900 && image.Pixels.Length == image.Width * image.Height * 4, "Renderização proporcional e buffer limitado");
-            Check(image.Pixels[0] == 255 && image.Pixels[1] == 255 && image.Pixels[2] == 255 && image.Pixels[3] == 255, "Composição RGBA sobre papel branco");
+            Check(image.Width == 635 && image.Height == 900 && image.Pixels.Length == image.Width * image.Height * 4, "Proportional rendering and bounded buffer");
+            Check(image.Pixels[0] == 255 && image.Pixels[1] == 255 && image.Pixels[2] == 255 && image.Pixels[3] == 255, "RGBA compositing over white paper");
             bool purple = false;
             for (int i = 0; i < image.Pixels.Length; i += 4)
             {
                 if (image.Pixels[i] == 88 && image.Pixels[i + 1] == 22 && image.Pixels[i + 2] == 193) purple = true;
             }
-            Check(purple, "Conversão BGRA preserva as cores do PDF");
+            Check(purple, "BGRA conversion preserves the PDF colors");
             string first = document.SaveCopy(folder, CancellationToken.None);
             string second = document.SaveCopy(folder, CancellationToken.None);
-            Check(first != second && File.ReadAllBytes(first).SequenceEqual(File.ReadAllBytes(fixturePath)) && File.ReadAllBytes(second).SequenceEqual(File.ReadAllBytes(fixturePath)), "Cópias idênticas sem sobrescrever arquivos");
+            Check(first != second && File.ReadAllBytes(first).SequenceEqual(File.ReadAllBytes(fixturePath)) && File.ReadAllBytes(second).SequenceEqual(File.ReadAllBytes(fixturePath)), "Identical copies without overwriting files");
             ExpectFailure<ArgumentOutOfRangeException>(() => document.Render(4, 900, CancellationToken.None));
             using (var cancellation = new CancellationTokenSource())
             {
@@ -86,7 +86,7 @@ public static class LessonPdfViewerChecks
             ExpectFailure<InvalidDataException>(() => LessonPdfDocument.Load(path, CancellationToken.None));
         }
         string invalid = Path.Combine(folder, "invalido.pdf");
-        File.WriteAllText(invalid, "Não é um PDF.");
+        File.WriteAllText(invalid, "Not a PDF.");
         ExpectFailure<InvalidDataException>(() => LessonPdfDocument.Load(invalid, CancellationToken.None));
         string oversized = Path.Combine(folder, "grande.pdf");
         using (var stream = File.Create(oversized)) stream.SetLength(64L * 1024 * 1024 + 1);
@@ -94,12 +94,12 @@ public static class LessonPdfViewerChecks
         File.Delete(oversized);
         using (var stream = new FileStream(fixturePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
         {
-            Check(stream.Length > 0, "Streams e handles liberados após renderizar");
+            Check(stream.Length > 0, "Streams and handles released after rendering");
         }
         var disposed = LessonPdfDocument.Load(fixturePath, CancellationToken.None);
         disposed.Dispose();
         ExpectFailure<ObjectDisposedException>(() => disposed.Render(0, 900, CancellationToken.None));
-        Check(true, "Validação de caminhos, tamanho, cancelamento, índices e descarte");
+        Check(true, "Validation of paths, size, cancellation, indices and disposal");
     }
 
     private static async Task CheckViewer()
@@ -112,20 +112,20 @@ public static class LessonPdfViewerChecks
         LessonPdfViewer.Open(fixturePath);
         var viewer = UnityEngine.Object.FindAnyObjectByType<LessonPdfViewer>();
         await Until(() => Ready(viewer));
-        Check(LessonPdfViewer.IsOpen && (originalSystem == null || !originalSystem.enabled), "Modal bloqueia a interface anterior");
+        Check(LessonPdfViewer.IsOpen && (originalSystem == null || !originalSystem.enabled), "Modal blocks the previous interface");
         var scroll = Get<ScrollRect>(viewer, "scroll");
         var image = Get<RawImage>(viewer, "pageImage");
-        Check(image.rectTransform.rect.height <= scroll.viewport.rect.height && image.rectTransform.rect.width <= scroll.viewport.rect.width, "Ajustar página respeita a área de leitura");
+        Check(image.rectTransform.rect.height <= scroll.viewport.rect.height && image.rectTransform.rect.width <= scroll.viewport.rect.width, "Fit page respects the reading area");
         viewer.ChangePage(1);
         await Until(() => Ready(viewer));
-        Check(Get<TMP_Text>(viewer, "pageLabel").text == "Página 2 de 4", "Navegação de páginas");
+        Check(Get<TMP_Text>(viewer, "pageLabel").text == "Page 2 of 4", "Page navigation");
         viewer.SaveCopyAsync();
         await Until(() => !Get<bool>(viewer, "saving"));
-        const string copyPrefix = "Cópia salva em: ";
+        const string copyPrefix = "Copy saved to: ";
         string copyStatus = Get<TMP_Text>(viewer, "statusLabel").text;
-        Check(copyStatus.StartsWith(copyPrefix, StringComparison.Ordinal), "Salvar cópia pela interface conclui em Documentos");
+        Check(copyStatus.StartsWith(copyPrefix, StringComparison.Ordinal), "Saving a copy from the UI completes in Documents");
         string savedCopy = copyStatus.Substring(copyPrefix.Length);
-        Check(File.ReadAllBytes(savedCopy).SequenceEqual(File.ReadAllBytes(fixturePath)), "Cópia da interface mantém todos os bytes do relatório");
+        Check(File.ReadAllBytes(savedCopy).SequenceEqual(File.ReadAllBytes(fixturePath)), "UI copy keeps every byte of the report");
         File.Delete(savedCopy);
         viewer.FitWidth();
         await Until(() => Ready(viewer));
@@ -139,7 +139,7 @@ public static class LessonPdfViewerChecks
                 viewer.ChangeZoom(i % 2 == 0 ? 1 : -1);
             }
             await Until(() => Ready(viewer));
-            Check(Get<TMP_Text>(viewer, "pageLabel").text == "Página 2 de 4", "Solicitações rápidas mantêm a última página com o jogo pausado");
+            Check(Get<TMP_Text>(viewer, "pageLabel").text == "Page 2 of 4", "Rapid requests keep the last page while the game is paused");
         }
         finally
         {
@@ -149,14 +149,14 @@ public static class LessonPdfViewerChecks
         viewer.ChangeZoom(1);
         viewer.Close();
         await Task.Delay(300);
-        Check(!LessonPdfViewer.IsOpen && texture == null && (originalSystem == null || originalSystem.enabled), "Fechar cancela o trabalho, libera a textura e restaura o EventSystem");
+        Check(!LessonPdfViewer.IsOpen && texture == null && (originalSystem == null || originalSystem.enabled), "Closing cancels the work, releases the texture and restores the EventSystem");
         Check(Cursor.visible == cursorVisible && Cursor.lockState == cursorLock && (originalSystem == null || originalSystem.currentSelectedGameObject == originalSelection), "Cursor e foco restaurados");
         LessonPdfViewer.Open(fixturePath);
         viewer = UnityEngine.Object.FindAnyObjectByType<LessonPdfViewer>();
         await Until(() => Ready(viewer));
         viewer.Close();
         await Task.Delay(50);
-        Check(true, "Reabertura após descarte do PDFium");
+        Check(true, "Reopening after PDFium disposal");
         var history = UnityEngine.Object.FindAnyObjectByType<RDAAdministrationController>(FindObjectsInactive.Include);
         string previousReport = Get<string>(history, "selectedReport");
         try
@@ -165,7 +165,7 @@ public static class LessonPdfViewerChecks
             typeof(RDAAdministrationController).GetMethod("OpenReport", PrivateInstance).Invoke(history, null);
             viewer = UnityEngine.Object.FindAnyObjectByType<LessonPdfViewer>();
             await Until(() => Ready(viewer));
-            Check(LessonPdfViewer.IsOpen, "Histórico abre o PDF dentro do jogo");
+            Check(LessonPdfViewer.IsOpen, "History opens the PDF inside the game");
             viewer.Close();
             await Task.Delay(50);
         }
@@ -176,14 +176,14 @@ public static class LessonPdfViewerChecks
         LessonPdfViewer.Open(Path.Combine(Path.GetDirectoryName(fixturePath), "ausente.pdf"));
         viewer = UnityEngine.Object.FindAnyObjectByType<LessonPdfViewer>();
         await Until(() => Get<Button>(viewer, "retryButton").gameObject.activeSelf);
-        Check(Get<TMP_Text>(viewer, "loadingLabel").text == "O arquivo PDF não foi encontrado." && Get<Button>(viewer, "closeButton").interactable, "Erro em português mantém os controles de tentar novamente e fechar");
+        Check(Get<TMP_Text>(viewer, "loadingLabel").text == "The PDF file was not found." && Get<Button>(viewer, "closeButton").interactable, "Error message keeps the retry and close controls");
         viewer.Close();
         await Task.Delay(50);
     }
 
     private static async Task CheckExporter(string folder)
     {
-        if (TrainingManager.Instance != null) throw new InvalidOperationException("A MainMenu de teste não deve conter um treinamento ativo.");
+        if (TrainingManager.Instance != null) throw new InvalidOperationException("The test MainMenu must not contain an active training.");
         var controller = RDALessonReportController.Instance;
         var student = controller.currentStudent;
         var instructor = controller.currentInstructor;
@@ -191,7 +191,7 @@ public static class LessonPdfViewerChecks
         bool started = controller.isLessonStarted;
         float duration = controller.lessonDurationTimer;
         string studentName = "Teste_PDF_" + Guid.NewGuid().ToString("N");
-        var root = new GameObject("Verificação do exportador");
+        var root = new GameObject("Exporter check");
         root.SetActive(false);
         var training = root.AddComponent<TrainingManager>();
         training.enabled = false;
@@ -215,24 +215,24 @@ public static class LessonPdfViewerChecks
             reportPath = Get<string>(exporter, "lastGeneratedPdfPath");
             var viewer = UnityEngine.Object.FindAnyObjectByType<LessonPdfViewer>();
             await Until(() => viewer != null && Ready(viewer));
-            Check(completed && finishCount == 1 && LessonPdfViewer.IsOpen && File.Exists(reportPath), "Finalizar aula salva o relatório, mantém os eventos e abre o PDF automaticamente");
+            Check(completed && finishCount == 1 && LessonPdfViewer.IsOpen && File.Exists(reportPath), "Finishing the lesson saves the report, keeps the events and opens the PDF automatically");
             byte[] original = File.ReadAllBytes(reportPath);
             using (var reader = new iTextSharp.text.pdf.PdfReader(original))
             {
                 string text = iTextSharp.text.pdf.parser.PdfTextExtractor.GetTextFromPage(reader, 1);
-                Check(reader.NumberOfPages >= 4 && text.Contains(studentName) && text.Contains("RELATÓRIO DE DESEMPENHO"), "Conteúdo e páginas do LessonPdfExporter preservados");
+                Check(reader.NumberOfPages >= 4 && text.Contains(studentName) && text.Contains("PERFORMANCE REPORT"), "LessonPdfExporter content and pages preserved");
             }
             viewer.ChangePage(2);
             viewer.FitWidth();
             await Until(() => Ready(viewer));
-            Check(File.ReadAllBytes(reportPath).SequenceEqual(original), "Navegar e ampliar não modifica o relatório");
+            Check(File.ReadAllBytes(reportPath).SequenceEqual(original), "Navigating and zooming does not modify the report");
             File.Copy(reportPath, Path.Combine(folder, "Relatorio_aula.pdf"), true);
             viewer.Close();
             await Task.Delay(50);
             exporter.OpenLastGeneratedPDF();
             viewer = UnityEngine.Object.FindAnyObjectByType<LessonPdfViewer>();
             await Until(() => viewer != null && Ready(viewer));
-            Check(LessonPdfViewer.IsOpen, "Botão existente reabre o relatório dentro do jogo");
+            Check(LessonPdfViewer.IsOpen, "Existing button reopens the report inside the game");
             viewer.Close();
         }
         finally
@@ -262,7 +262,7 @@ public static class LessonPdfViewerChecks
             for (int i = 0; i < 4; i++)
             {
                 if (i > 0) document.NewPage();
-                document.Add(new iTextSharp.text.Paragraph("RELATORIO LOCAL DE TESTE - PAGINA " + (i + 1)));
+                document.Add(new iTextSharp.text.Paragraph("LOCAL TEST REPORT - PAGE " + (i + 1)));
                 writer.DirectContent.SetColorFill(new iTextSharp.text.BaseColor(88, 22, 193));
                 writer.DirectContent.Rectangle(40, 500, 200, 60);
                 writer.DirectContent.Fill();
@@ -278,7 +278,7 @@ public static class LessonPdfViewerChecks
         float deadline = Time.realtimeSinceStartup + 15f;
         while (!predicate())
         {
-            if (Time.realtimeSinceStartup > deadline) throw new TimeoutException("O visualizador não concluiu a operação.");
+            if (Time.realtimeSinceStartup > deadline) throw new TimeoutException("The viewer did not finish the operation.");
             await Task.Delay(25);
         }
     }
@@ -299,6 +299,6 @@ public static class LessonPdfViewerChecks
         {
             return;
         }
-        throw new InvalidOperationException("Era esperada a exceção " + typeof(T).Name);
+        throw new InvalidOperationException("Expected exception " + typeof(T).Name);
     }
 }
