@@ -32,7 +32,7 @@ public class MapTrajectoryData
 
 
     // planting
-    public List<Vector2> plantingActivePoints = new List<Vector2>();   // Plantio ativo
+    public List<Vector2> plantingActivePoints = new List<Vector2>();   // Planting active
     public List<Vector2> plantingOffPoints = new List<Vector2>();
 }
 
@@ -101,7 +101,7 @@ public class LessonPdfExporter : MonoBehaviour
         }
 
         string documentosPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        string folderPath = Path.Combine(documentosPath, "Relatorios Das Aulas", studentName);
+        string folderPath = Path.Combine(documentosPath, "Lesson Reports", studentName);
         Directory.CreateDirectory(folderPath);
 
         string dataFormatada = savedLesson.EndDate.ToString("dd-MM-yyyy_HH-mm");
@@ -164,7 +164,7 @@ public class LessonPdfExporter : MonoBehaviour
         string studentName = lesson.Student.Name;
         string instructorName = lesson.Instructor.Name;
         string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        string farmName = sceneName == "Farm1" ? "Fazenda 1" : (sceneName == "Farm2" ? "Fazenda 2" : sceneName);
+        string farmName = sceneName == "Farm1" ? "Farm 1" : (sceneName == "Farm2" ? "Farm 2" : sceneName);
 
         PdfPTable headerTable = new PdfPTable(1);
         headerTable.WidthPercentage = 50;
@@ -175,7 +175,7 @@ public class LessonPdfExporter : MonoBehaviour
         headerCell.HorizontalAlignment = Element.ALIGN_CENTER;
         headerTable.AddCell(headerCell);
 
-        PdfPCell subCell = new PdfPCell(new Phrase("Treinamento Operacional", fontSubtitle));
+        PdfPCell subCell = new PdfPCell(new Phrase("Operational Training", fontSubtitle));
         subCell.Border = Rectangle.NO_BORDER;
         subCell.HorizontalAlignment = Element.ALIGN_CENTER;
         headerTable.AddCell(subCell);
@@ -187,13 +187,13 @@ public class LessonPdfExporter : MonoBehaviour
         headerDate.SpacingAfter = 15;
         document.Add(headerDate);
 
-        Paragraph title = new Paragraph("RELATÓRIO DE DESEMPENHO", fontTitle);
+        Paragraph title = new Paragraph("PERFORMANCE REPORT", fontTitle);
         title.Alignment = Element.ALIGN_CENTER;
         title.SpacingAfter = 15;
         document.Add(title);
 
         Paragraph Student = new Paragraph();
-        Student.Add(new Chunk("Aluno: ", fontBold));
+        Student.Add(new Chunk("Student: ", fontBold));
         Student.Add(new Chunk(studentName, fontNormal));
         document.Add(Student);
 
@@ -203,12 +203,12 @@ public class LessonPdfExporter : MonoBehaviour
         document.Add(Instructor);
 
         Paragraph Training = new Paragraph();
-        Training.Add(new Chunk("Treinamento: ", fontBold));
+        Training.Add(new Chunk("Training: ", fontBold));
         Training.Add(new Chunk(trainingText, fontNormal));
         document.Add(Training);
 
         Paragraph vehicleModel = new Paragraph();
-        vehicleModel.Add(new Chunk("Modelo do veículo: ", fontBold));
+        vehicleModel.Add(new Chunk("Vehicle model: ", fontBold));
         vehicleModel.Add(new Chunk(GetVehicleModelName(), fontNormal));
         document.Add(vehicleModel);
 
@@ -218,12 +218,12 @@ public class LessonPdfExporter : MonoBehaviour
         document.Add(Fazenda);
 
         Paragraph DateTime = new Paragraph();
-        DateTime.Add(new Chunk("Data: ", fontBold));
+        DateTime.Add(new Chunk("Date: ", fontBold));
         DateTime.Add(new Chunk(System.DateTime.Now.ToString("dd/MM/yyyy"), fontNormal));
         document.Add(DateTime);
 
         Paragraph duracaoPara = new Paragraph();
-        duracaoPara.Add(new Chunk("Duração: ", fontBold));
+        duracaoPara.Add(new Chunk("Duration: ", fontBold));
         duracaoPara.Add(new Chunk(timeClass, fontNormal));
         document.Add(duracaoPara);
 
@@ -240,59 +240,59 @@ public class LessonPdfExporter : MonoBehaviour
 
         document.Add(metricsTable);
 
-        document.Add(new Paragraph("Resumo da Aula:", fontBold));
+        document.Add(new Paragraph("Lesson Summary:", fontBold));
         document.Add(new Paragraph($"Acertos: {manager.CompletedTasks}", fontNormal));
         document.Add(new Paragraph($"Erros: {manager.ErrorCount}", fontNormal));
-        document.Add(new Paragraph($"Total de tarefas: {manager.TotalAttempts}", fontNormal));
+        document.Add(new Paragraph($"Total tasks: {manager.TotalAttempts}", fontNormal));
         document.Add(new Paragraph($"Percentual de acertos: {p:0}%", fontNormal));
-        document.Add(new Paragraph($"Retrabalho / ineficiência: {manager.RepeatedOperationPercent:0.0}%", fontNormal));
-        document.Add(new Paragraph($"Operação fora da área: {manager.OutsideOperationPercent:0.0}%", fontNormal));
-        document.Add(new Paragraph($"Desconto na pontuação: {manager.OperationPenaltyPercent:0.0} pontos percentuais", fontNormal));
+        document.Add(new Paragraph($"Rework / inefficiency: {manager.RepeatedOperationPercent:0.0}%", fontNormal));
+        document.Add(new Paragraph($"Out-of-area operation: {manager.OutsideOperationPercent:0.0}%", fontNormal));
+        document.Add(new Paragraph($"Score penalty: {manager.OperationPenaltyPercent:0.0} percentage points", fontNormal));
         if (RDSceneManager.Operation == RDSceneManager.Operations.Planting)
         {
             document.Add(new Paragraph(
-                $"Desperdício estimado no retrabalho: {manager.WastedSeeds:0.0} unid. de sementes e {manager.WastedFuelLiters:0.00} L de combustível.", fontNormal));
+                $"Estimated waste from rework: {manager.WastedSeeds:0.0} seed units and {manager.WastedFuelLiters:0.00} L of fuel.", fontNormal));
         }
         else if (RDSceneManager.Operation == RDSceneManager.Operations.Spraying)
         {
             document.Add(new Paragraph(
-                $"Desperdício estimado no retrabalho: {manager.WastedSprayLiters:0.00} L de calda e {manager.WastedFuelLiters:0.00} L de combustível.", fontNormal));
+                $"Estimated waste from rework: {manager.WastedSprayLiters:0.00} L of spray mix and {manager.WastedFuelLiters:0.00} L of fuel.", fontNormal));
         }
         document.Add(Chunk.NEWLINE);
 
-        document.Add(new Paragraph("Tarefas Concluídas com Sucesso:", fontBold));
+        document.Add(new Paragraph("Tasks Completed Successfully:", fontBold));
         bool hit = false;
         foreach (var task in manager.TaskResults.Where(t => t.Success))
         {
             document.Add(new Paragraph($"• {task.Message}", fontNormal));
             hit = true;
         }
-        if (!hit) document.Add(new Paragraph("Nenhuma tarefa concluída com sucesso.", fontNormal));
+        if (!hit) document.Add(new Paragraph("No task completed successfully.", fontNormal));
         document.Add(Chunk.NEWLINE);
 
-        document.Add(new Paragraph("Pontos de Atenção (Erros):", fontBold));
+        document.Add(new Paragraph("Attention Points (Errors):", fontBold));
         bool errors = false;
         foreach (var task in manager.TaskResults.Where(t => !t.Success))
         {
             document.Add(new Paragraph($"• {task.Message}", fontNormal));
             errors = true;
         }
-        if (!errors) document.Add(new Paragraph("Nenhum erro registrado durante a aula.", fontNormal));
+        if (!errors) document.Add(new Paragraph("No errors recorded during the lesson.", fontNormal));
         document.Add(Chunk.NEWLINE);
 
         System.Text.StringBuilder observacoesBuilder = new System.Text.StringBuilder();
 
         if (RDSceneManager.Operation == RDSceneManager.Operations.Spraying && stats.AvgSpeed >= 12)
         {
-            observacoesBuilder.Append($"• A velocidade média registrada foi de {stats.AvgSpeed:F1} km/h, acima do recomendado (máx. 12 km/h). Velocidades elevadas comprometem a uniformidade da aplicação e aumentam o risco de deriva do produto, deixando a eficiência baixa.");
+            observacoesBuilder.Append($"• The average speed recorded was {stats.AvgSpeed:F1} km/h, above the recommended limit (max. 12 km/h). High speeds compromise application uniformity and increase the risk of product drift, lowering efficiency.");
         }
         else if (RDSceneManager.Operation == RDSceneManager.Operations.Planting && stats.AvgSpeed >= 6)
         {
-            observacoesBuilder.Append($"• A velocidade média registrada foi de {stats.AvgSpeed:F1} km/h, acima do recomendado (máx. 6 km/h). Velocidades elevadas podem causar falhas na semeadura, profundidade irregular e estande desuniforme, resultando em perdas de produtividade.");
+            observacoesBuilder.Append($"• The average speed recorded was {stats.AvgSpeed:F1} km/h, above the recommended limit (max. 6 km/h). High speeds can cause seeding gaps, uneven depth and an uneven stand, resulting in yield losses.");
         }
         else if ((RDSceneManager.Operation == RDSceneManager.Operations.Harvesting || RDSceneManager.Operation == RDSceneManager.Operations.HarvertingCorn) && stats.AvgSpeed >= 6)
         {
-            observacoesBuilder.Append($"• A velocidade média registrada foi de {stats.AvgSpeed:F1} km/h, acima do recomendado (máx. 6 km/h). Velocidades elevadas impedem que a barra de corte e o molinete recolham o material corretamente, resultando em perdas que podem representar grande parte da colheita.");
+            observacoesBuilder.Append($"• The average speed recorded was {stats.AvgSpeed:F1} km/h, above the recommended limit (max. 6 km/h). High speeds prevent the cutter bar and reel from gathering the crop correctly, causing losses that can represent a large part of the harvest.");
         }
 
         foreach (var task in manager.TaskResults.Where(t => !t.Success))
@@ -308,14 +308,14 @@ public class LessonPdfExporter : MonoBehaviour
         if (manager.ErrorCount > 0)
         {
             if (observacoesBuilder.Length > 0) observacoesBuilder.AppendLine();
-            observacoesBuilder.Append("• Foque em aprender mais sobre o procedimento dos veículos.");
+            observacoesBuilder.Append("• Focus on learning more about the vehicle procedures.");
         }
         if (observacoesBuilder.Length == 0)
         {
-            observacoesBuilder.Append("Nenhuma observação adicional.");
+            observacoesBuilder.Append("No additional observations.");
         }
 
-        document.Add(new Paragraph("Observações:", fontBold));
+        document.Add(new Paragraph("Observations:", fontBold));
         document.Add(new Paragraph(observacoesBuilder.ToString(), fontNormal));
         document.Add(Chunk.NEWLINE);
     }
@@ -325,7 +325,7 @@ public class LessonPdfExporter : MonoBehaviour
         GameObject vehicle = player != null ? player.gameObject : RDSceneManager.VehicleToSpawn;
         if (vehicle == null)
         {
-            return "Não informado";
+            return "Not provided";
         }
 
         if (vehicle.TryGetComponent(out RDVehicleConfiguration configuration))
@@ -347,12 +347,12 @@ public class LessonPdfExporter : MonoBehaviour
 
     private void CreateTelemetryPage(PdfWriter writer, Document document, TrainingManager manager)
     {
-        Paragraph title = new Paragraph("ANÁLISE DE TELEMETRIA", fontTitle);
+        Paragraph title = new Paragraph("TELEMETRY ANALYSIS", fontTitle);
         title.Alignment = Element.ALIGN_CENTER;
         title.SpacingAfter = 10;
         document.Add(title);
 
-        Paragraph subtitle = new Paragraph("Dados coletados durante a operação", fontSubtitle);
+        Paragraph subtitle = new Paragraph("Data collected during the operation", fontSubtitle);
         subtitle.Alignment = Element.ALIGN_CENTER;
         subtitle.SpacingAfter = 20;
         document.Add(subtitle);
@@ -361,13 +361,13 @@ public class LessonPdfExporter : MonoBehaviour
 
         if (telemetryData == null)
         {
-            document.Add(new Paragraph("Erro: Dados de telemetria não disponíveis.", fontNormal));
+            document.Add(new Paragraph("Error: Telemetry data not available.", fontNormal));
             return;
         }
 
         if (telemetryData.Count < 2)
         {
-            document.Add(new Paragraph($"Dados de telemetria insuficientes para análise. Apenas {telemetryData.Count} ponto(s) coletado(s).", fontNormal));
+            document.Add(new Paragraph($"Insufficient telemetry data for analysis. Only {telemetryData.Count} point(s) collected.", fontNormal));
             return;
         }
 
@@ -393,7 +393,7 @@ public class LessonPdfExporter : MonoBehaviour
         }
 
         CreateDualChart(writer.DirectContent, document, telemetryData,
-            "VELOCIDADE E RPM",
+            "SPEED AND RPM",
             new string[] { "km/h", "RPM" },
             new Func<TelemetryDataPoint, float>[] { d => d.Speed, d => d.EngineRpm },
             new BaseColor[] { COLOR_SPEED, COLOR_RPM },
@@ -410,12 +410,12 @@ public class LessonPdfExporter : MonoBehaviour
     }
     private void CreateMapPage(Document document, MapTrajectoryData mapData, AdvancedStats stats, PdfWriter writer)
     {
-        Paragraph title = new Paragraph("TRAJETÓRIA DA OPERAÇÃO", fontTitle);
+        Paragraph title = new Paragraph("OPERATION PATH", fontTitle);
         title.Alignment = Element.ALIGN_CENTER;
         title.SpacingAfter = 10;
         document.Add(title);
 
-        Paragraph subtitle = new Paragraph("Percurso realizado durante a aula", fontSubtitle);
+        Paragraph subtitle = new Paragraph("Route taken during the lesson", fontSubtitle);
         subtitle.Alignment = Element.ALIGN_CENTER;
         subtitle.SpacingAfter = 20;
         document.Add(subtitle);
@@ -430,9 +430,9 @@ public class LessonPdfExporter : MonoBehaviour
         float tempoTotalSegundos = TrainingManager.Instance != null ?
             TrainingManager.Instance.ElapsedTime : 0f;
 
-        AddStatCell(statsTable, "Distância Total", $"{distanciaPercorrida:F1} m");
-        AddStatCell(statsTable, "Tempo de Operação", $"{FormatTimeMMSS(tempoTotalSegundos)} min");
-        AddStatCell(statsTable, "Velocidade Média", $"{stats.AvgSpeed:F1} km/h");
+        AddStatCell(statsTable, "Total Distance", $"{distanciaPercorrida:F1} m");
+        AddStatCell(statsTable, "Operation Time", $"{FormatTimeMMSS(tempoTotalSegundos)} min");
+        AddStatCell(statsTable, "Average Speed", $"{stats.AvgSpeed:F1} km/h");
 
         document.Add(statsTable);
 
@@ -622,7 +622,7 @@ public class LessonPdfExporter : MonoBehaviour
                     cb.SetFontAndSize(BaseFont.CreateFont(), 8);
                     cb.SetColorFill(COLOR_JD_BLACK);
                     cb.SetTextMatrix(startX - 15, startY + 10);
-                    cb.ShowText("INÍCIO");
+                    cb.ShowText("START");
                     cb.EndText();
                 }
 
@@ -640,50 +640,50 @@ public class LessonPdfExporter : MonoBehaviour
                     cb.SetFontAndSize(BaseFont.CreateFont(), 8);
                     cb.SetColorFill(COLOR_JD_BLACK);
                     cb.SetTextMatrix(endX - 10, endY + 10);
-                    cb.ShowText("FIM");
+                    cb.ShowText("END");
                     cb.EndText();
                 }
             }
             catch (Exception e)
             {
-                document.Add(new Paragraph($"Erro ao gerar mapa: {e.Message}", fontNormal));
+                document.Add(new Paragraph($"Error generating map: {e.Message}", fontNormal));
             }
         }
 
         Paragraph legend = new Paragraph();
 
-        legend.Add(new Chunk("Trajetória percorrida representada em verde.\n", fontSmall));
+        legend.Add(new Chunk("Path traveled shown in green.\n", fontSmall));
 
         RDSceneManager.Operations currentOp = RDSceneManager.Operation;
 
         if (currentOp == RDSceneManager.Operations.Harvesting ||
             currentOp == RDSceneManager.Operations.HarvertingCorn)
         {
-            legend.Add(new Chunk("• Ponto verde maior: Início da operação\n", fontSmall));
-            legend.Add(new Chunk("• Ponto vermelho maior: Fim da operação\n", fontSmall));
-            legend.Add(new Chunk("• Ponto azul: Cano aberto\n", fontSmall));
-            legend.Add(new Chunk("• Ponto amarelo: Ceifadora ligada\n", fontSmall));
-            legend.Add(new Chunk("• Ponto vermelho: Ceifadora desligada\n", fontSmall));
+            legend.Add(new Chunk("• Larger green dot: Start of operation\n", fontSmall));
+            legend.Add(new Chunk("• Larger red dot: End of operation\n", fontSmall));
+            legend.Add(new Chunk("• Blue dot: Pipe open\n", fontSmall));
+            legend.Add(new Chunk("• Yellow dot: Cutter on\n", fontSmall));
+            legend.Add(new Chunk("• Red dot: Cutter off\n", fontSmall));
         }
         else if (currentOp == RDSceneManager.Operations.Spraying)
         {
-            legend.Add(new Chunk("• Ponto verde maior: Início da operação\n", fontSmall));
-            legend.Add(new Chunk("• Ponto azul: Braços abertos\n", fontSmall));
-            legend.Add(new Chunk("• Ponto amarelo: Pulverizando\n", fontSmall));
-            legend.Add(new Chunk("• Ponto vermelho menor: Pulverização desligada\n", fontSmall));
-            legend.Add(new Chunk("• Ponto vermelho maior: Fim da operação\n", fontSmall));
+            legend.Add(new Chunk("• Larger green dot: Start of operation\n", fontSmall));
+            legend.Add(new Chunk("• Blue dot: Arms open\n", fontSmall));
+            legend.Add(new Chunk("• Yellow dot: Spraying\n", fontSmall));
+            legend.Add(new Chunk("• Smaller red dot: Spraying off\n", fontSmall));
+            legend.Add(new Chunk("• Larger red dot: End of operation\n", fontSmall));
         }
         else if (currentOp == RDSceneManager.Operations.Planting)
         {
-            legend.Add(new Chunk("• Ponto verde maior: Início da operação\n", fontSmall));
-            legend.Add(new Chunk("• Ponto amarelo: Plantio ativado\n", fontSmall));
-            legend.Add(new Chunk("• Ponto vermelho: Plantio desativado\n", fontSmall));
+            legend.Add(new Chunk("• Larger green dot: Start of operation\n", fontSmall));
+            legend.Add(new Chunk("• Yellow dot: Planting on\n", fontSmall));
+            legend.Add(new Chunk("• Red dot: Planting off\n", fontSmall));
 
         }
         else if (currentOp == RDSceneManager.Operations.Tractor)
         {  
-            legend.Add(new Chunk("• Ponto verde maior: Início da operação\n", fontSmall));
-            legend.Add(new Chunk("• Ponto vermelho maior: Fim da operação\n", fontSmall));
+            legend.Add(new Chunk("• Larger green dot: Start of operation\n", fontSmall));
+            legend.Add(new Chunk("• Larger red dot: End of operation\n", fontSmall));
         }
 
         legend.SpacingBefore = 10;
@@ -699,7 +699,7 @@ public class LessonPdfExporter : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("O PDF não foi encontrado ou ainda não foi gerado.");
+            Debug.LogWarning("The PDF was not found or has not been generated yet.");
         }
     }
 
@@ -736,7 +736,7 @@ public class LessonPdfExporter : MonoBehaviour
 
         if (minimapController == null)
         {
-            Debug.LogError("[MapTrajectory] MinimapController não encontrado!");
+            Debug.LogError("[MapTrajectory] MinimapController not found!");
             return trajectoryData;
         }
 
@@ -832,7 +832,7 @@ public class LessonPdfExporter : MonoBehaviour
 
                     if (!data.ArmsOpened && lastArmsOpenedState)
                     {
-                        // Se quiser adicionar uma lista para braços fechados
+                        // If you want to add a list for closed arms
                         // trajectoryData.armsClosedPoints.Add(mapPos);
                     }
 
@@ -985,7 +985,7 @@ public class LessonPdfExporter : MonoBehaviour
         cb.SetFontAndSize(BaseFont.CreateFont(), 7);
         cb.SetColorFill(COLOR_JD_GRAY);
         cb.SetTextMatrix(left + chartWidth / 2 - 25, timeY -2);
-        cb.ShowText("Tempo (min)");
+        cb.ShowText("Time (min)");
         cb.EndText();
 
         int numMarkers = 8;
@@ -1121,14 +1121,14 @@ public class LessonPdfExporter : MonoBehaviour
             BaseColor eficienciaColor = eficiencia >= 95 ? COLOR_JD_GREEN :
                                         (eficiencia >= 85 ? COLOR_JD_YELLOW : COLOR_BRAKE);
 
-            AddStatCell(lineTable, "Vel. Média", $"{stats.AvgSpeed:F1} km/h");
-            AddStatCell(lineTable, "Vel. Máx", $"{stats.MaxSpeed:F1} km/h");
-            AddStatCell(lineTable, "RPM Médio", $"{stats.AvgRpm:F0}");
-            AddStatCell(lineTable, "RPM Máx", $"{stats.MaxRpm:F0}");
-            AddStatCell(lineTable, "Grãos no caminhão", $"{grainsInBucket:F0}");
-            AddStatCell(lineTable, "Perda de Grãos", $"{grainsLost:F0}");
-            AddStatCell(lineTable, "Acel. Médio", $"{stats.AvgThrottle * 100:F0}%");
-            AddStatCell(lineTable, "Eficiência", $"{eficiencia:F1}%", eficienciaColor);
+            AddStatCell(lineTable, "Avg. Speed", $"{stats.AvgSpeed:F1} km/h");
+            AddStatCell(lineTable, "Max Speed", $"{stats.MaxSpeed:F1} km/h");
+            AddStatCell(lineTable, "Avg. RPM", $"{stats.AvgRpm:F0}");
+            AddStatCell(lineTable, "Max RPM", $"{stats.MaxRpm:F0}");
+            AddStatCell(lineTable, "Grains in truck", $"{grainsInBucket:F0}");
+            AddStatCell(lineTable, "Grain Loss", $"{grainsLost:F0}");
+            AddStatCell(lineTable, "Avg. Throttle", $"{stats.AvgThrottle * 100:F0}%");
+            AddStatCell(lineTable, "Efficiency", $"{eficiencia:F1}%", eficienciaColor);
         }
 
         else if (isSprayer)
@@ -1156,13 +1156,13 @@ public class LessonPdfExporter : MonoBehaviour
             BaseColor eficienciaColor = eficiencia >= 90 ? COLOR_JD_GREEN :
                                         (eficiencia >= 70 ? COLOR_JD_YELLOW : COLOR_BRAKE);
 
-            AddStatCell(lineTable, "Vel. Média", $"{stats.AvgSpeed:F1} km/h");
-            AddStatCell(lineTable, "Vel. Máx", $"{stats.MaxSpeed:F1} km/h");
-            AddStatCell(lineTable, "RPM Médio", $"{stats.AvgRpm:F0}");
-            AddStatCell(lineTable, "RPM Máx", $"{stats.MaxRpm:F0}");
-            AddStatCell(lineTable, "Acel. Médio", $"{stats.AvgThrottle * 100:F0}%");
-            AddStatCell(lineTable, "Freio Médio", $"{stats.AvgBrake * 100:F0}%");
-            AddStatCell(lineTable, "Eficiência", $"{eficiencia:F1}%", eficienciaColor);
+            AddStatCell(lineTable, "Avg. Speed", $"{stats.AvgSpeed:F1} km/h");
+            AddStatCell(lineTable, "Max Speed", $"{stats.MaxSpeed:F1} km/h");
+            AddStatCell(lineTable, "Avg. RPM", $"{stats.AvgRpm:F0}");
+            AddStatCell(lineTable, "Max RPM", $"{stats.MaxRpm:F0}");
+            AddStatCell(lineTable, "Avg. Throttle", $"{stats.AvgThrottle * 100:F0}%");
+            AddStatCell(lineTable, "Avg. Brake", $"{stats.AvgBrake * 100:F0}%");
+            AddStatCell(lineTable, "Efficiency", $"{eficiencia:F1}%", eficienciaColor);
         }
 
         else if (isPlanting)
@@ -1190,23 +1190,23 @@ public class LessonPdfExporter : MonoBehaviour
             BaseColor eficienciaColor = eficiencia >= 90 ? COLOR_JD_GREEN :
                                         (eficiencia >= 70 ? COLOR_JD_YELLOW : COLOR_BRAKE);
 
-            AddStatCell(lineTable, "Vel. Média", $"{stats.AvgSpeed:F1} km/h");
-            AddStatCell(lineTable, "Vel. Máx", $"{stats.MaxSpeed:F1} km/h");
-            AddStatCell(lineTable, "RPM Médio", $"{stats.AvgRpm:F0}");
-            AddStatCell(lineTable, "RPM Máx", $"{stats.MaxRpm:F0}");
-            AddStatCell(lineTable, "Acel. Médio", $"{stats.AvgThrottle * 100:F0}%");
-            AddStatCell(lineTable, "Freio Médio", $"{stats.AvgBrake * 100:F0}%");
-            AddStatCell(lineTable, "Eficiência", $"{eficiencia:F1}%", eficienciaColor);
+            AddStatCell(lineTable, "Avg. Speed", $"{stats.AvgSpeed:F1} km/h");
+            AddStatCell(lineTable, "Max Speed", $"{stats.MaxSpeed:F1} km/h");
+            AddStatCell(lineTable, "Avg. RPM", $"{stats.AvgRpm:F0}");
+            AddStatCell(lineTable, "Max RPM", $"{stats.MaxRpm:F0}");
+            AddStatCell(lineTable, "Avg. Throttle", $"{stats.AvgThrottle * 100:F0}%");
+            AddStatCell(lineTable, "Avg. Brake", $"{stats.AvgBrake * 100:F0}%");
+            AddStatCell(lineTable, "Efficiency", $"{eficiencia:F1}%", eficienciaColor);
         }
 
         else
         {
-            AddStatCell(lineTable, "Vel. Média", $"{stats.AvgSpeed:F1} km/h");
-            AddStatCell(lineTable, "Vel. Máx", $"{stats.MaxSpeed:F1} km/h");
-            AddStatCell(lineTable, "RPM Médio", $"{stats.AvgRpm:F0}");
-            AddStatCell(lineTable, "RPM Máx", $"{stats.MaxRpm:F0}");
-            AddStatCell(lineTable, "Acel. Médio", $"{stats.AvgThrottle * 100:F0}%");
-            AddStatCell(lineTable, "Freio Médio", $"{stats.AvgBrake * 100:F0}%");
+            AddStatCell(lineTable, "Avg. Speed", $"{stats.AvgSpeed:F1} km/h");
+            AddStatCell(lineTable, "Max Speed", $"{stats.MaxSpeed:F1} km/h");
+            AddStatCell(lineTable, "Avg. RPM", $"{stats.AvgRpm:F0}");
+            AddStatCell(lineTable, "Max RPM", $"{stats.MaxRpm:F0}");
+            AddStatCell(lineTable, "Avg. Throttle", $"{stats.AvgThrottle * 100:F0}%");
+            AddStatCell(lineTable, "Avg. Brake", $"{stats.AvgBrake * 100:F0}%");
         }
 
         document.Add(lineTable);
@@ -1293,12 +1293,12 @@ public class LessonPdfExporter : MonoBehaviour
     {
         switch (RDSceneManager.Operation)
         {
-            case RDSceneManager.Operations.Planting: return "Plantio";
-            case RDSceneManager.Operations.Tractor: return "Trator";
-            case RDSceneManager.Operations.Spraying: return "Pulverização";
+            case RDSceneManager.Operations.Planting: return "Planting";
+            case RDSceneManager.Operations.Tractor: return "Tractor";
+            case RDSceneManager.Operations.Spraying: return "Spraying";
             case RDSceneManager.Operations.Harvesting:
-            case RDSceneManager.Operations.HarvertingCorn: return "Colheita";
-            default: return "Treinamento";
+            case RDSceneManager.Operations.HarvertingCorn: return "Harvest";
+            default: return "Training";
         }
     }
 
@@ -1340,12 +1340,12 @@ public class LessonPdfExporter : MonoBehaviour
             PdfPTable footer = new PdfPTable(2);
             footer.TotalWidth = document.PageSize.Width - document.LeftMargin - document.RightMargin;
 
-            PdfPCell cell1 = new PdfPCell(new Phrase("Treinamento Profissional", font));
+            PdfPCell cell1 = new PdfPCell(new Phrase("Professional Training", font));
             cell1.Border = Rectangle.NO_BORDER;
             cell1.HorizontalAlignment = Element.ALIGN_LEFT;
             footer.AddCell(cell1);
 
-            PdfPCell cell2 = new PdfPCell(new Phrase($"Página {pageCount}", font));
+            PdfPCell cell2 = new PdfPCell(new Phrase($"Page {pageCount}", font));
             cell2.Border = Rectangle.NO_BORDER;
             cell2.HorizontalAlignment = Element.ALIGN_RIGHT;
             footer.AddCell(cell2);
@@ -1360,48 +1360,48 @@ public class LessonPdfExporter : MonoBehaviour
         {
             switch (taskIndex)
             {
-                case 0: return "Certifique-se de que todos os sistemas de segurança estão checados antes de dar a partida no motor.";
-                case 1: return "Atenção à altura da plataforma: manter a altura correta evita perdas de grãos e danos ao equipamento.";
-                case 2: return "Mantenha o alinhamento constante durante a colheita para garantir que toda a área seja processada sem falhas.";
-                case 3: return "Sempre desligue o molinete e os sistemas de trilha ao finalizar a faixa de colheita para economizar combustível e evitar desgaste.";
-                case 4: return "Durante a descarga, certifique-se de que o cano está posicionado corretamente sobre o caminhão para evitar desperdício.";
-                case 5: return "Lembre-se sempre de fechar o tubo de descarga antes de se deslocar ou guardar a máquina para evitar colisões.";
+                case 0: return "Make sure all safety systems are checked before starting the engine.";
+                case 1: return "Mind the platform height: keeping the correct height avoids grain loss and equipment damage.";
+                case 2: return "Keep a constant alignment during harvest to make sure the whole area is processed without gaps.";
+                case 3: return "Always switch off the reel and threshing systems at the end of a harvest pass to save fuel and reduce wear.";
+                case 4: return "During unloading, make sure the pipe is positioned correctly over the truck to avoid waste.";
+                case 5: return "Always remember to close the unloading pipe before moving or parking the machine to avoid collisions.";
             }
         }
         else if (op == RDSceneManager.Operations.Planting)
         {
             switch (taskIndex)
             {
-                case 0: return "Verifique o nível de sementes e fertilizantes no reservatório antes de iniciar a operação.";
-                case 1: return "O implemento deve ser levantado totalmente antes de realizar manobras ou acelerar o trator para evitar danos mecânicos.";
-                case 2: return "Mantenha a velocidade constante durante o plantio para garantir a profundidade e distribuição uniforme das sementes.";
-                case 3: return "Ao finalizar o talhão, levante o implemento suavemente para não arrastar as linhas de plantio no solo.";
-                case 4: return "Sempre verifique se há obstruções nos tubos condutores de sementes ao final de cada jornada.";
-                case 5: return "Estacione o conjunto em local plano e alivie a pressão hidráulica do implemento ao guardar.";
+                case 0: return "Check the seed and fertilizer level in the tank before starting the operation.";
+                case 1: return "The implement must be fully raised before maneuvering or accelerating the tractor to avoid mechanical damage.";
+                case 2: return "Keep a constant speed while planting to ensure uniform seed depth and distribution.";
+                case 3: return "At the end of the field, raise the implement smoothly so it does not drag the planting rows.";
+                case 4: return "Always check for blockages in the seed tubes at the end of each work day.";
+                case 5: return "Park the rig on level ground and release the implement hydraulic pressure when storing it.";
             }
         }
         else if (op == RDSceneManager.Operations.Tractor)
         {
             switch (taskIndex)
             {
-                case 0: return "A partida correta do motor garante a lubrificação ideal e aumenta a vida útil dos componentes internos.";
-                case 1: return "Mantenha o foco na trajetória e utilize as balizas como referência para aprimorar sua percepção espacial com o implemento.";
-                case 2: return "Utilize a marcha correta para a carga transportada, evitando sobrecarga no motor e consumo excessivo.";
-                case 3: return "Ao realizar manobras em espaços reduzidos, utilize os espelhos e mantenha uma velocidade reduzida de segurança.";
-                case 4: return "Verifique sempre o engate do implemento e as conexões hidráulicas antes de iniciar qualquer deslocamento longo.";
-                case 5: return "Ao estacionar, certifique-se de que o freio de mão está acionado e o implemento está devidamente apoiado no solo.";
+                case 0: return "Starting the engine correctly ensures ideal lubrication and extends the life of internal components.";
+                case 1: return "Stay focused on the path and use the markers as a reference to improve your spatial awareness with the implement.";
+                case 2: return "Use the correct gear for the load being carried, avoiding engine overload and excessive consumption.";
+                case 3: return "When maneuvering in tight spaces, use the mirrors and keep a safe, reduced speed.";
+                case 4: return "Always check the implement hitch and hydraulic connections before any long trip.";
+                case 5: return "When parking, make sure the handbrake is engaged and the implement rests properly on the ground.";
             }
         }
         else if (op == RDSceneManager.Operations.Spraying)
         {
             switch (taskIndex)
             {
-                case 0: return "Verifique a pressão do sistema e a integridade dos bicos antes de iniciar a aplicação do defensivo.";
-                case 1: return "As barras de pulverização devem ser abertas apenas em áreas amplas e livres de obstáculos para evitar quebras.";
-                case 2: return "Monitore a velocidade do vento e a pressão de trabalho para evitar a deriva do produto para fora do alvo.";
-                case 3: return "Sempre desligue a bomba de pulverização ao realizar manobras de cabeceira para evitar sobreposição de produto.";
-                case 4: return "Mantenha a altura das barras estável em relação à cultura para garantir a cobertura ideal das gotas.";
-                case 5: return "Após a operação, realize a limpeza do sistema para evitar a cristalização de resíduos nos bicos e filtros.";
+                case 0: return "Check the system pressure and nozzle condition before starting the chemical application.";
+                case 1: return "Spray booms must only be opened in wide, obstacle-free areas to avoid breakage.";
+                case 2: return "Monitor wind speed and working pressure to prevent product drift off target.";
+                case 3: return "Always switch off the spray pump when turning at the headland to avoid product overlap.";
+                case 4: return "Keep the boom height stable relative to the crop to ensure ideal droplet coverage.";
+                case 5: return "After the operation, clean the system to prevent residue crystallizing in the nozzles and filters.";
             }
         }
         return "";
@@ -1429,9 +1429,9 @@ public class LessonPdfExporter : MonoBehaviour
                 assinaturaTable.AddCell(cell);
             }
 
-            AddSignatureRow(assinaturaTable, "Assinatura do Aluno", font);
+            AddSignatureRow(assinaturaTable, "Student Signature", font);
             AddSignatureRow(assinaturaTable, "Assinatura do Instrutor", font);
-            AddSignatureRow(assinaturaTable, "Assinatura do Responsável", font);
+            AddSignatureRow(assinaturaTable, "Instructor Signature", font);
 
             float x = document.LeftMargin;
             float y = document.BottomMargin + 100;
