@@ -1,48 +1,70 @@
-# Training Reports (Unity package)
+# Training Reports for Unity
 
-Lessons, scoring and **PDF performance reports** for agricultural machine simulators in Unity (C#).
-Extracted from a professional training simulator; company names and branding were removed.
+Training task UI, score calculation, and configurable lesson performance reports for Unity 6 projects. Simulator-specific behavior is supplied by the host through package interfaces; this package contains no simulator SDK or vehicle controller dependency.
 
 ## Installation
 
-1. In Unity: **Window > Package Manager > + > Add package from git URL...**
-2. Paste:
+In Unity, open **Window > Package Manager > + > Add package from git URL...** and use one of these URLs:
 
-```
-https://github.com/schaeffergui/unity-training-reports.git
-```
+- Stable branch: `https://github.com/schaeffergui/unity-training-reports.git#main`
+- Development branch: `https://github.com/schaeffergui/unity-training-reports.git#dev`
 
-For the development version, append `#dev`:
-`https://github.com/schaeffergui/unity-training-reports.git#dev`
-
-Or add it to `Packages/manifest.json`:
+You can also add the package to `Packages/manifest.json`:
 
 ```json
-"com.schaeffergui.training-reports": "https://github.com/schaeffergui/unity-training-reports.git"
+{
+  "dependencies": {
+    "com.schaeffergui.training-reports": "https://github.com/schaeffergui/unity-training-reports.git#main"
+  }
+}
 ```
 
-## Requirements
-- Unity 6 (6000.0 or newer) and `com.unity.ugui` (installed automatically).
-- Install in your project: [Rewired](https://assetstore.unity.com/packages/tools/utilities/rewired-21676), Vehicle Physics Pro, iTextSharp and Docnet (third-party, not included).
-- The code uses simulator classes (`RDSceneManager`, `RDStudent`, machine controllers). The package has no `asmdef`, so it compiles together with your project and finds those classes. Decoupling them through interfaces is on the roadmap.
+## Requirements and optional libraries
 
-## What the package does
+- Unity 6 (`6000.0` or newer).
+- `com.unity.ugui`, declared as a package dependency. The UI scripts also use Unity's TextMeshPro assembly.
+- No simulator SDK, Rewired, or Vehicle Physics Pro dependency is required by the package assemblies.
+- The in-game PDF viewer is optional. Add `Docnet.Core.dll` to the host project and define `TRAINING_REPORTS_PDF` to compile `TrainingReports.Pdf`.
+- PDF export is optional. Add the iTextSharp 5.x assembly as `itextsharp.dll` and define `TRAINING_REPORTS_PDF_EXPORT` to compile `TrainingReports.PdfExport`. iTextSharp is not included in this package; review its LGPL/AGPL licensing terms before distributing it.
 
-| Part | Files | Description |
-|---|---|---|
-| Lessons and tasks | `Runtime/Training/TrainingManager.cs` | Tractor, planting, spraying and harvesting lessons: sequenced tasks, scoring and performance tracking |
-| Task panel | `Runtime/Training/TrainingTaskUI.cs` | In-lesson task interface |
-| PDF report | `Runtime/Reports/LessonPdfExporter.cs` | PDF with grades, speed and RPM charts, route map, observations and recommendations, grain loss and efficiency |
-| End-of-lesson screen | `Runtime/Reports/LessonReportUI.cs`, `LessonReportData.cs` | Summary shown when the lesson ends |
-| PDF viewer | `Runtime/UI/LessonPdfViewer.cs`, `Runtime/Reports/LessonPdfDocument.cs` | Opens the PDF in-game: asynchronous rendering with cancellation, path validation and safe copy |
-| Tests | `Tests/`, `Editor/` | NUnit tests for implement-footprint scoring and PDF viewer checks |
+The PDF viewer and exporter are disabled when their scripting symbols are absent, so projects can use the Core, Reports, and Training assemblies without those optional libraries.
 
-## Technical highlights
-- Scoring that penalizes repeated or out-of-zone operation, proportional to the implement footprint.
-- Observations generated from the student's mistakes and an estimate of waste caused by rework.
-- A PDF viewer that rejects URLs, network paths and invalid or oversized files.
+## Package architecture
 
-## Notes
-- All text is in English. A few UI object lookups in `LessonReportUI.cs` and `TrainingManager.cs` still match scene object names such as `Treinamento`, `Erro` and `BraçoL`, because those names live in the simulator prefabs, which are not included.
-- Logos and report images are not included.
-- No reuse license: all rights reserved to the author unless stated otherwise.
+```mermaid
+flowchart TD
+    Core[TrainingReports.Core<br/>Pure data and host interfaces]
+    Reports[TrainingReports.Reports<br/>Report UI and context asset]
+    Training[TrainingReports.Training<br/>Task UI and lesson orchestration]
+    Viewer[TrainingReports.Pdf<br/>Optional viewer, Docnet]
+    Export[TrainingReports.PdfExport<br/>Optional report export, iTextSharp]
+    Tests[TrainingReports.Core.Tests<br/>EditMode tests]
+    Sample[TrainingReports.SimulatorAdapter<br/>Imported sample]
+    Core --> Reports
+    Core --> Training
+    Reports --> Training
+    Core --> Viewer
+    Core --> Export
+    Core --> Tests
+    Reports --> Tests
+    Core --> Sample
+    Training --> Sample
+```
+
+## Connect a host project
+
+`TrainingManager` accepts a host component implementing `ITrainingContext`, `ITrainingOperationRunner`, and the relevant vehicle, theme, metrics, and report interfaces. The runner receives an `ITrainingTaskSink` and `IVehicleProbe`; it owns the host's operation-specific checks and reports task results through the sink. `TrainingTaskUI` renders those results with the supplied `ITrainingTheme`.
+
+Import **Samples > Training Reports > Simulator Adapter** in Package Manager for a plain C# example. It demonstrates the interface wiring with sample data; replace its illustrative lesson checks and report presenter with the host's real operation logic and reporting integration.
+
+## Tests
+
+The package includes EditMode tests for report inputs, observation thresholds, telemetry statistics, and score calculation. The latest Unity 6 consumer-project run completed **25/25 EditMode tests**.
+
+## Verification status
+
+- Core, Reports, and Training compiled in Unity `6000.2.1f1` with optional PDF scripting symbols off.
+- The sample adapter assembly compiled when imported into the consumer project. It has not been exercised in a real simulator.
+- The PDF viewer has not been compiled with `Docnet.Core.dll` in the consumer project.
+- The PDF exporter has not been compiled with iTextSharp and `TRAINING_REPORTS_PDF_EXPORT` enabled.
+- No `MinimalLesson` scene is included yet.
