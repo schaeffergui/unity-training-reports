@@ -1,0 +1,22 @@
+{
+  "name": "TrainingReports.Pdf",
+  "rootNamespace": "TrainingReports.Pdf",
+  "references": [
+    "TrainingReports.Core",
+    "Unity.TextMeshPro",
+    "Unity.ugui"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "Docnet.Core.dll"
+  ],
+  "autoReferenced": true,
+  "defineConstraints": [
+    "TRAINING_REPORTS_PDF"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

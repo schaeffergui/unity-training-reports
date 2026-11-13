@@ -1,4 +1,3 @@
-using Rewired;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,12 +9,15 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TrainingReports;
 
 [DefaultExecutionOrder(-1000)]
 public sealed class LessonPdfViewer : MonoBehaviour
 {
     [SerializeField] private Sprite roundedSprite;
     [SerializeField] private TMP_FontAsset font;
+
+    public static ITrainingTheme Theme { get; set; } = DefaultTrainingTheme.Instance;
 
     private enum FitMode { Page, Width, Manual }
     private static LessonPdfViewer instance;
@@ -52,11 +54,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
     private EventSystem eventSystem;
     private EventSystem previousSystem;
     private GameObject previousSelection;
-    private Player player;
-    private int horizontalAction;
-    private int verticalAction;
-    private int submitAction;
-    private int cancelAction;
+    private ITrainingTheme theme;
     private FitMode fitMode;
     private int pageIndex;
     private int requestVersion;
@@ -94,6 +92,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
 
     private void Awake()
     {
+        theme = Theme ?? DefaultTrainingTheme.Instance;
         instance = this;
         DontDestroyOnLoad(gameObject);
         previousSystem = EventSystem.current;
@@ -110,7 +109,6 @@ public sealed class LessonPdfViewer : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        player = null;
         SuspendEventSystems();
         EventSystem.current = eventSystem;
     }
@@ -174,17 +172,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
 
     private void UpdateInput()
     {
-        if (!ReInput.isReady) player = null;
-        if (player == null && ReInput.isReady && ReInput.players.playerCount > 0)
-        {
-            player = ReInput.players.Players[0];
-            horizontalAction = FindAction("UIHorizontal", "CameraX");
-            verticalAction = FindAction("UIVertical", "CameraY");
-            submitAction = FindAction("UISubmit", "Submit");
-            cancelAction = FindAction("UICancel", "Cancel");
-        }
-
-        if (Input.GetKeyDown(KeyCode.Escape) || ReadButton(cancelAction))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
             Close();
             return;
@@ -193,14 +181,8 @@ public sealed class LessonPdfViewer : MonoBehaviour
         scroll.scrollSensitivity = control ? 0f : 48f;
         if (Input.GetKeyDown(KeyCode.Tab)) SelectControl(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) ? -1 : 1);
 
-        float horizontal = 0f;
-        float vertical = 0f;
-        Controller controller = player != null ? player.controllers.GetLastActiveController() : null;
-        if (controller != null && controller.type != ControllerType.Mouse)
-        {
-            horizontal = horizontalAction >= 0 ? player.GetAxisRaw(horizontalAction) : 0f;
-            vertical = verticalAction >= 0 ? player.GetAxisRaw(verticalAction) : 0f;
-        }
+        float horizontal = (Input.GetKey(KeyCode.RightArrow) ? 1f : 0f) - (Input.GetKey(KeyCode.LeftArrow) ? 1f : 0f);
+        float vertical = (Input.GetKey(KeyCode.UpArrow) ? 1f : 0f) - (Input.GetKey(KeyCode.DownArrow) ? 1f : 0f);
         int direction = Mathf.Abs(horizontal) > 0.5f ? (horizontal > 0f ? 1 : -1) : Mathf.Abs(vertical) > 0.5f ? (vertical > 0f ? -1 : 1) : 0;
         if (direction != navigationDirection || (direction != 0 && Time.unscaledTime >= nextNavigationTime))
         {
@@ -208,7 +190,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
             nextNavigationTime = Time.unscaledTime + (direction != navigationDirection ? 0.35f : 0.15f);
             navigationDirection = direction;
         }
-        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space) || ReadButton(submitAction))
+        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space))
         {
             GameObject selected = eventSystem.currentSelectedGameObject;
             for (int i = 0; i < controls.Count; i++)
@@ -238,14 +220,6 @@ public sealed class LessonPdfViewer : MonoBehaviour
         if (overflow.x > 0f && x != 0f) scroll.horizontalNormalizedPosition = Mathf.Clamp01(scroll.horizontalNormalizedPosition + x * step / overflow.x);
         if (overflow.y > 0f && y != 0f) scroll.verticalNormalizedPosition = Mathf.Clamp01(scroll.verticalNormalizedPosition + y * step / overflow.y);
     }
-
-    private static int FindAction(string preferred, string fallback)
-    {
-        int id = ReInput.mapping.GetActionId(preferred);
-        return id >= 0 ? id : ReInput.mapping.GetActionId(fallback);
-    }
-
-    private bool ReadButton(int action) => player != null && action >= 0 && player.GetButtonDown(action);
 
     private void SelectControl(int direction)
     {
@@ -396,7 +370,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
     private void SetLoading(string message)
     {
         loadingPanel.SetActive(true);
-        loadingLabel.color = RDCompanyPalette.BrandPurple;
+        loadingLabel.color = ThemeColor(TrainingThemeColor.Brand);
         loadingLabel.text = message;
     }
 
@@ -408,10 +382,10 @@ public sealed class LessonPdfViewer : MonoBehaviour
             : exception is DllNotFoundException || exception is BadImageFormatException || exception is EntryPointNotFoundException ? "The local PDF renderer is not available in this installation."
             : exception is InvalidDataException ? exception.Message
             : "Could not open the PDF. The file may be damaged, password-protected or unreadable.");
-        loadingLabel.color = RDCompanyPalette.Warning;
+        loadingLabel.color = ThemeColor(TrainingThemeColor.Warning);
         retryButton.gameObject.SetActive(true);
         statusLabel.text = "The original report remains saved in the Documents folder.";
-        Debug.LogWarning("Falha no visualizador local de PDF: " + exception.GetType().Name);
+        Debug.LogWarning("The local PDF viewer failed: " + exception.GetType().Name);
     }
 
     public void Close()
@@ -472,7 +446,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
         lastSafeArea = safeArea;
         float scale = canvas.scaleFactor;
         lastCanvasScale = scale;
-        float width = Mathf.Min(1620f, Mathf.Min(safeArea.width, RDMenuViewport.GetAvailableWidth(Screen.width, Screen.height)) / scale - 48f);
+        float width = Mathf.Min(1620f, safeArea.width / scale - 48f);
         panel.sizeDelta = new Vector2(width, safeArea.height / scale - 48f);
         panel.anchoredPosition = (safeArea.center - resolution * 0.5f) / scale;
         footer.sizeDelta = new Vector2(Mathf.Min(520f, width - 48f), 60f);
@@ -497,15 +471,15 @@ public sealed class LessonPdfViewer : MonoBehaviour
         scaler.referenceResolution = new Vector2(1920f, 1080f);
         scaler.matchWidthOrHeight = 1f;
         gameObject.AddComponent<GraphicRaycaster>();
-        var scrim = Image("Fundo", transform, RDCompanyPalette.Scrim, false);
+        var scrim = Image("Screen scrim", transform, ThemeColor(TrainingThemeColor.Scrim), false);
         Stretch(scrim.rectTransform, Vector2.zero, Vector2.zero);
-        panel = Image("Documento", transform, RDCompanyPalette.LightWindow).rectTransform;
+        panel = Image("Document", transform, ThemeColor(TrainingThemeColor.Window)).rectTransform;
         Place(panel, Vector2.one * 0.5f, Vector2.zero, Vector2.one * 0.5f, new Vector2(1620f, 1032f));
-        TMP_Text title = Text("Lesson report", panel, 36f, RDCompanyPalette.BrandPurple);
+        TMP_Text title = Text("Lesson report", panel, 36f, ThemeColor(TrainingThemeColor.Brand));
         StretchTop(title.rectTransform, 24f, -24f, -200f, 48f);
         title.fontStyle = FontStyles.Bold;
         title.alignment = TextAlignmentOptions.MidlineLeft;
-        fileLabel = Text("Documento PDF local", panel, 21f, RDCompanyPalette.SecondaryText);
+        fileLabel = Text("Local PDF document", panel, 21f, ThemeColor(TrainingThemeColor.SecondaryText));
         StretchTop(fileLabel.rectTransform, 24f, -76f, -24f, 32f);
         fileLabel.alignment = TextAlignmentOptions.MidlineLeft;
         fileLabel.overflowMode = TextOverflowModes.Ellipsis;
@@ -515,19 +489,19 @@ public sealed class LessonPdfViewer : MonoBehaviour
         pageRow = Rect("Pages", panel);
         Row(pageRow, 8f);
         previousButton = Button("‹ Previous", pageRow, () => ChangePage(-1), 126f);
-        pageLabel = Text("Page — of —", pageRow, 22f, RDCompanyPalette.DenseText);
+        pageLabel = Text("Page — of —", pageRow, 22f, ThemeColor(TrainingThemeColor.PrimaryText));
         Element(pageLabel.gameObject, 166f);
         nextButton = Button("Next ›", pageRow, () => ChangePage(1), 126f);
         zoomRow = Rect("Zoom", panel);
         Row(zoomRow, 8f);
         zoomOutButton = Button("−", zoomRow, () => ChangeZoom(-1), 56f);
-        zoomLabel = Text("—%", zoomRow, 22f, RDCompanyPalette.DenseText);
+        zoomLabel = Text("—%", zoomRow, 22f, ThemeColor(TrainingThemeColor.PrimaryText));
         Element(zoomLabel.gameObject, 80f);
         zoomInButton = Button("+", zoomRow, () => ChangeZoom(1), 56f);
         fitPageButton = Button("FIT PAGE", zoomRow, FitPage, 0f);
-        fitWidthButton = Button("AJUSTAR LARGURA", zoomRow, FitWidth, 0f);
+        fitWidthButton = Button("FIT WIDTH", zoomRow, FitWidth, 0f);
 
-        var scrollObject = Image("Reading area", panel, RDCompanyPalette.NeutralControl);
+        var scrollObject = Image("Reading area", panel, ThemeColor(TrainingThemeColor.NeutralControl));
         scroll = scrollObject.gameObject.AddComponent<ScrollRect>();
         scroll.movementType = ScrollRect.MovementType.Clamped;
         scroll.inertia = false;
@@ -547,26 +521,26 @@ public sealed class LessonPdfViewer : MonoBehaviour
         scroll.horizontalScrollbar = Scrollbar(scroll.transform, false);
         scroll.verticalScrollbarVisibility = scroll.horizontalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHide;
 
-        loadingPanel = Image("Estado de leitura", panel, RDCompanyPalette.Surface).gameObject;
+        loadingPanel = Image("Loading status", panel, ThemeColor(TrainingThemeColor.Surface)).gameObject;
         Place((RectTransform)loadingPanel.transform, Vector2.one * 0.5f, Vector2.zero, Vector2.one * 0.5f, new Vector2(480f, 248f));
-        loadingLabel = Text("Loading report...", loadingPanel.transform, 25f, RDCompanyPalette.BrandPurple);
+        loadingLabel = Text("Loading report...", loadingPanel.transform, 25f, ThemeColor(TrainingThemeColor.Brand));
         Stretch(loadingLabel.rectTransform, new Vector2(20f, 76f), new Vector2(-20f, -16f));
-        retryButton = Button("TENTAR NOVAMENTE", loadingPanel.transform, Retry);
+        retryButton = Button("TRY AGAIN", loadingPanel.transform, Retry);
         Place((RectTransform)retryButton.transform, new Vector2(0.5f, 0f), new Vector2(0f, 16f), new Vector2(0.5f, 0f), new Vector2(300f, 52f));
         retryButton.gameObject.SetActive(false);
 
-        statusLabel = Text("", panel, 20f, RDCompanyPalette.SecondaryText);
+        statusLabel = Text("", panel, 20f, ThemeColor(TrainingThemeColor.SecondaryText));
         statusLabel.overflowMode = TextOverflowModes.Ellipsis;
         Stretch(statusLabel.rectTransform, new Vector2(24f, 96f), new Vector2(-24f, 144f), true);
         footer = Rect("Actions", panel);
         Place(footer, new Vector2(0.5f, 0f), new Vector2(0f, 24f), new Vector2(0.5f, 0f), new Vector2(520f, 60f));
         Row(footer, 16f);
         Button("BACK", footer, Close);
-        saveButton = Button("SAVE COPY", footer, SaveCopyAsync, 0f, RDCompanySelectableStyle.Role.Primary);
+        saveButton = Button("SAVE COPY", footer, SaveCopyAsync, 0f, true);
         previousButton.interactable = nextButton.interactable = zoomOutButton.interactable = zoomInButton.interactable = false;
         fitPageButton.interactable = fitWidthButton.interactable = saveButton.interactable = false;
 
-        var inputObject = new GameObject("Entrada do visualizador", typeof(EventSystem), typeof(StandaloneInputModule));
+        var inputObject = new GameObject("Viewer input system", typeof(EventSystem), typeof(StandaloneInputModule));
         inputObject.transform.SetParent(transform, false);
         eventSystem = inputObject.GetComponent<EventSystem>();
         eventSystem.sendNavigationEvents = false;
@@ -577,13 +551,13 @@ public sealed class LessonPdfViewer : MonoBehaviour
 
     private Scrollbar Scrollbar(Transform parent, bool vertical)
     {
-        var track = Image(vertical ? "Rolagem vertical" : "Rolagem horizontal", parent, RDCompanyPalette.NeutralControl);
+        var track = Image(vertical ? "Vertical scrollbar" : "Horizontal scrollbar", parent, ThemeColor(TrainingThemeColor.NeutralControl));
         RectTransform trackRect = track.rectTransform;
         trackRect.anchorMin = vertical ? new Vector2(1f, 0f) : Vector2.zero;
         trackRect.anchorMax = vertical ? Vector2.one : new Vector2(1f, 0f);
         trackRect.offsetMin = vertical ? new Vector2(-18f, 22f) : Vector2.zero;
         trackRect.offsetMax = vertical ? Vector2.zero : new Vector2(-22f, 18f);
-        var handle = Image("Controle de rolagem", trackRect, RDCompanyPalette.BrandPurple);
+        var handle = Image("Scrollbar handle", trackRect, ThemeColor(TrainingThemeColor.Brand));
         Stretch(handle.rectTransform, Vector2.zero, Vector2.zero);
         var bar = track.gameObject.AddComponent<Scrollbar>();
         bar.direction = vertical ? UnityEngine.UI.Scrollbar.Direction.BottomToTop : UnityEngine.UI.Scrollbar.Direction.LeftToRight;
@@ -592,26 +566,40 @@ public sealed class LessonPdfViewer : MonoBehaviour
         bar.navigation = new Navigation { mode = Navigation.Mode.None };
         var colors = bar.colors;
         colors.highlightedColor = colors.selectedColor = Color.white;
-        colors.pressedColor = RDCompanyPalette.SelectedCard;
+        colors.pressedColor = ThemeColor(TrainingThemeColor.SelectedSurface);
         bar.colors = colors;
         return bar;
     }
 
-    private Button Button(string label, Transform parent, UnityAction action, float width = 0f, RDCompanySelectableStyle.Role role = RDCompanySelectableStyle.Role.Secondary)
+    private Button Button(string label, Transform parent, UnityAction action, float width = 0f, bool primary = false)
     {
-        var image = Image(label, parent, RDCompanyPalette.Surface);
+        TrainingThemeColor surface = primary ? TrainingThemeColor.PrimaryButtonSurface : TrainingThemeColor.SecondaryButtonSurface;
+        TrainingThemeColor textColor = primary ? TrainingThemeColor.PrimaryButtonText : TrainingThemeColor.SecondaryButtonText;
+        TrainingThemeColor pressed = primary ? TrainingThemeColor.PrimaryButtonPressed : TrainingThemeColor.SecondaryButtonPressed;
+        var image = Image(label, parent, ThemeColor(surface));
         var button = image.gameObject.AddComponent<Button>();
         button.targetGraphic = image;
         button.navigation = new Navigation { mode = Navigation.Mode.Explicit };
         button.onClick.AddListener(action);
-        var text = Text(label, image.transform, 22f, RDCompanyPalette.BrandPurple);
+        var text = Text(label, image.transform, 22f, ThemeColor(textColor));
         Stretch(text.rectTransform, new Vector2(8f, 4f), new Vector2(-8f, -4f));
         text.fontStyle = FontStyles.Bold;
         var outline = image.gameObject.AddComponent<Outline>();
-        image.gameObject.AddComponent<RDCompanySelectableStyle>().Setup(role, image, outline, text);
+        outline.effectColor = ThemeColor(TrainingThemeColor.Brand);
+        var colors = button.colors;
+        colors.normalColor = ThemeColor(surface);
+        colors.highlightedColor = colors.selectedColor = ThemeColor(TrainingThemeColor.SelectedSurface);
+        colors.pressedColor = ThemeColor(pressed);
+        button.colors = colors;
         Element(image.gameObject, width);
         controls.Add(button);
         return button;
+    }
+
+    private Color ThemeColor(TrainingThemeColor role)
+    {
+        TrainingColor color = theme.GetColor(role);
+        return new Color32(color.Red, color.Green, color.Blue, color.Alpha);
     }
 
     private Image Image(string name, Transform parent, Color color, bool rounded = true)

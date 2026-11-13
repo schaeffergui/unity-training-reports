@@ -152,7 +152,7 @@ public sealed class LessonPdfDocument : IDisposable
         for (int index = 1; index <= 999; index++)
         {
             token.ThrowIfCancellationRequested();
-            string name = Path.GetFileNameWithoutExtension(FileName) + "_copia_" + index + ".pdf";
+            string name = Path.GetFileNameWithoutExtension(FileName) + "_copy_" + index + ".pdf";
             string destination = Path.Combine(destinationFolder, name);
             FileStream stream;
             try

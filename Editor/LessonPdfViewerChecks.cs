@@ -1,3 +1,4 @@
+#if TRAINING_REPORTS_PDF && TRAINING_REPORTS_SIMULATOR
 using Car2;
 using System;
 using System.Collections.Generic;
@@ -302,3 +303,4 @@ public static class LessonPdfViewerChecks
         throw new InvalidOperationException("Expected exception " + typeof(T).Name);
     }
 }
+#endif
