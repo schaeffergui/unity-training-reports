@@ -7,6 +7,7 @@ namespace TrainingReports
         string FarmName { get; }
         string SceneName { get; }
         string StudentName { get; }
+        string InstructorName { get; }
         string VehicleModel { get; }
     }
 }

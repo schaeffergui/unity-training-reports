@@ -2,15 +2,26 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using TrainingReports;
 
 public class LessonReportUI : MonoBehaviour
 {
-    private static readonly Color PanelColor = RDCompanyPalette.Hex(0xF7F5FC, 0.98f);
-    private static readonly Color CardColor = RDCompanyPalette.Hex(0xFFFFFF, 0.96f);
-    private static readonly Color BorderColor = RDCompanyPalette.Hex(0xD9CCF7, 0.9f);
-    private static readonly Color BackgroundScrim = RDCompanyPalette.Hex(0x0E0B18, 0.72f);
+    public static ITrainingTheme Theme { get; set; } = DefaultTrainingTheme.Instance;
+    public ITrainingContext Context { get; set; }
+
+    private static Color PanelColor => ThemeColor(TrainingThemeColor.Window);
+    private static Color CardColor => ThemeColor(TrainingThemeColor.Surface);
+    private static Color BorderColor => ThemeColor(TrainingThemeColor.Border);
+    private static Color BackgroundScrim => ThemeColor(TrainingThemeColor.Scrim);
+
+    private static Color ThemeColor(TrainingThemeColor role)
+    {
+        TrainingColor color = Theme.GetColor(role);
+        return new Color32(color.Red, color.Green, color.Blue, color.Alpha);
+    }
     private static Sprite roundedSprite;
 
+    [SerializeField] private LessonReportData reportData;
     [SerializeField] private TMP_Text studentText;
     [SerializeField] private TMP_Text instructorText;
 
@@ -24,7 +35,7 @@ public class LessonReportUI : MonoBehaviour
 
     private void OnEnable()
     {
-        ApplyCompanyStyle();
+        ApplyThemeStyle();
         PauseGame();
     }
 
@@ -42,14 +53,6 @@ public class LessonReportUI : MonoBehaviour
     {
         Time.timeScale = 0f;
         AudioListener.pause = true;
-
-        if (RDVehicles.Player != null)
-        {
-            RDVehicles.Player.CanDrive = false;
-            RDVehicles.Player.Handbrake = 1f;
-            RDVehicles.Player.Throttle = 0f;
-            RDVehicles.Player.Ignition = RDVehicle.IgnitionKeyPosition.Off;
-        }
     }
 
     private void ResumeGame()
@@ -60,25 +63,20 @@ public class LessonReportUI : MonoBehaviour
 
     private void Start()
     {
-        ApplyCompanyStyle();
+        ApplyThemeStyle();
 
-        RDALessonReportController controller = RDALessonReportController.Instance;
-        if (controller == null)
-        {
-            return;
-        }
-
-        string studentName = controller.currentStudent?.Name;
-        string instructorName = controller.currentInstructor?.Name;
+        ITrainingContext context = Context ?? reportData;
+        string studentName = context != null ? context.StudentName : null;
+        string instructorName = context != null ? context.InstructorName : null;
 
         if (studentText != null)
         {
-            studentText.text = string.IsNullOrEmpty(studentName) ? "Convidado" : studentName;
+            studentText.text = string.IsNullOrEmpty(studentName) ? "Guest" : studentName;
         }
 
         if (instructorText != null)
         {
-            instructorText.text = string.IsNullOrEmpty(instructorName) ? "Convidado" : instructorName;
+            instructorText.text = string.IsNullOrEmpty(instructorName) ? "Guest" : instructorName;
         }
     }
 
@@ -88,7 +86,7 @@ public class LessonReportUI : MonoBehaviour
         NormalizeButtonTransform(reportButtonRect, ReportButtonAnchorMin, ReportButtonAnchorMax);
     }
 
-    private void ApplyCompanyStyle()
+    private void ApplyThemeStyle()
     {
         RectTransform rootRect = transform as RectTransform;
         if (rootRect == null)
@@ -176,7 +174,7 @@ public class LessonReportUI : MonoBehaviour
         panelImage.raycastTarget = false;
 
         Outline outline = GetOrAdd<Outline>(panel);
-        outline.effectColor = RDCompanyPalette.Hex(0xBFA5EE, 0.75f);
+        outline.effectColor = ThemeColor(TrainingThemeColor.Brand);
         outline.effectDistance = new Vector2(2f, -2f);
         outline.useGraphicAlpha = true;
 
@@ -198,7 +196,7 @@ public class LessonReportUI : MonoBehaviour
         accentRect.SetParent(panelRect, false);
         SetRect(accentRect, new Vector2(0f, 0.985f), Vector2.one);
         Image accentImage = accentObject.GetComponent<Image>();
-        accentImage.color = RDCompanyPalette.BrandPurple;
+        accentImage.color = ThemeColor(TrainingThemeColor.Brand);
         accentImage.raycastTarget = false;
     }
 
@@ -211,7 +209,7 @@ public class LessonReportUI : MonoBehaviour
 
         TMP_Text title = FindOrCreateText(reportView, "Modern Report Title");
         title.text = "LESSON REPORT";
-        title.color = RDCompanyPalette.BrandPurple;
+        title.color = ThemeColor(TrainingThemeColor.Brand);
         title.fontStyle = FontStyles.Bold;
         title.fontSize = 58f;
         title.enableAutoSizing = true;
@@ -223,7 +221,7 @@ public class LessonReportUI : MonoBehaviour
 
         TMP_Text subtitle = FindOrCreateText(reportView, "Modern Report Subtitle");
         subtitle.text = "Training performance summary";
-        subtitle.color = RDCompanyPalette.SecondaryText;
+        subtitle.color = ThemeColor(TrainingThemeColor.SecondaryText);
         subtitle.fontSize = 24f;
         subtitle.enableAutoSizing = true;
         subtitle.fontSizeMin = 18f;
@@ -242,10 +240,10 @@ public class LessonReportUI : MonoBehaviour
 
         SetRect(scrollArea as RectTransform, new Vector2(0.215f, 0.215f), new Vector2(0.785f, 0.765f));
         Image scrollBackground = GetOrAdd<Image>(scrollArea.gameObject);
-        SetRoundedImage(scrollBackground, RDCompanyPalette.Hex(0xEEEAF8, 0.7f));
+        SetRoundedImage(scrollBackground, ThemeColor(TrainingThemeColor.Window));
         scrollBackground.raycastTarget = false;
 
-        Transform viewport = scrollArea.Find("Filtre Black");
+        Transform viewport = scrollArea.Find("Report Viewport");
         if (viewport != null)
         {
             SetRect(viewport as RectTransform, new Vector2(0.025f, 0.025f), new Vector2(0.96f, 0.975f));
@@ -350,7 +348,7 @@ public class LessonReportUI : MonoBehaviour
         {
             TMP_Text text = texts[i];
             text.text = "EVALUATION";
-            text.color = RDCompanyPalette.BrandPurple;
+            text.color = ThemeColor(TrainingThemeColor.Brand);
             text.fontStyle = FontStyles.Bold;
             text.fontSize = 36f;
             text.alignment = TextAlignmentOptions.MidlineLeft;
@@ -369,7 +367,7 @@ public class LessonReportUI : MonoBehaviour
         layout.preferredHeight = 90f;
 
         Image rowImage = GetOrAdd<Image>(row.gameObject);
-        SetRoundedImage(rowImage, index % 2 == 0 ? CardColor : RDCompanyPalette.Hex(0xFBFAFE, 0.98f));
+        SetRoundedImage(rowImage, index % 2 == 0 ? CardColor : ThemeColor(TrainingThemeColor.Window));
         rowImage.raycastTarget = false;
 
         Outline outline = GetOrAdd<Outline>(row.gameObject);
@@ -387,7 +385,7 @@ public class LessonReportUI : MonoBehaviour
             text.fontSizeMin = 18f;
             text.fontSizeMax = isResult ? 34f : 30f;
             text.fontStyle = isResult ? FontStyles.Bold : FontStyles.Normal;
-            text.color = isResult ? RDCompanyPalette.BrandPurple : RDCompanyPalette.SecondaryText;
+            text.color = isResult ? ThemeColor(TrainingThemeColor.Brand) : ThemeColor(TrainingThemeColor.SecondaryText);
             text.alignment = TextAlignmentOptions.MidlineLeft;
             text.textWrappingMode = TextWrappingModes.NoWrap;
             text.overflowMode = TextOverflowModes.Ellipsis;
@@ -417,7 +415,7 @@ public class LessonReportUI : MonoBehaviour
         Image track = scrollbar.GetComponent<Image>();
         if (track != null)
         {
-            SetRoundedImage(track, RDCompanyPalette.NeutralControl);
+            SetRoundedImage(track, ThemeColor(TrainingThemeColor.NeutralControl));
         }
 
         if (scrollbar.handleRect != null)
@@ -425,7 +423,7 @@ public class LessonReportUI : MonoBehaviour
             Image handle = scrollbar.handleRect.GetComponent<Image>();
             if (handle != null)
             {
-                SetRoundedImage(handle, RDCompanyPalette.BrandPurple);
+                SetRoundedImage(handle, ThemeColor(TrainingThemeColor.Brand));
             }
         }
     }
@@ -443,10 +441,10 @@ public class LessonReportUI : MonoBehaviour
         NormalizeButtonTransform(buttonRect, anchorMin, anchorMax);
 
         Image image = GetOrAdd<Image>(buttonTransform.gameObject);
-        SetRoundedImage(image, primary ? RDCompanyPalette.BrandPurple : RDCompanyPalette.Surface);
+        SetRoundedImage(image, primary ? ThemeColor(TrainingThemeColor.Brand) : ThemeColor(TrainingThemeColor.SecondaryButtonSurface));
 
         Outline outline = GetOrAdd<Outline>(buttonTransform.gameObject);
-        outline.effectColor = primary ? RDCompanyPalette.Hex(0x5816C1, 0.25f) : RDCompanyPalette.BrandPurple;
+        outline.effectColor = ThemeColor(TrainingThemeColor.Brand);
         outline.effectDistance = new Vector2(1.5f, -1.5f);
         outline.useGraphicAlpha = true;
 
@@ -458,10 +456,10 @@ public class LessonReportUI : MonoBehaviour
 
             ColorBlock colors = button.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = primary ? RDCompanyPalette.StrongHover : RDCompanyPalette.SelectedCard;
-            colors.pressedColor = primary ? RDCompanyPalette.PressedPurple : RDCompanyPalette.Hex(0xD9CCF7);
+            colors.highlightedColor = ThemeColor(TrainingThemeColor.SelectedSurface);
+            colors.pressedColor = primary ? ThemeColor(TrainingThemeColor.PrimaryButtonPressed) : ThemeColor(TrainingThemeColor.SelectedSurface);
             colors.selectedColor = colors.highlightedColor;
-            colors.disabledColor = RDCompanyPalette.DisabledFill;
+            colors.disabledColor = ThemeColor(TrainingThemeColor.NeutralControl);
             colors.colorMultiplier = 1f;
             colors.fadeDuration = 0.12f;
             button.colors = colors;
@@ -472,7 +470,7 @@ public class LessonReportUI : MonoBehaviour
         {
             TMP_Text text = labels[i];
             text.text = label;
-            text.color = primary ? Color.white : RDCompanyPalette.BrandPurple;
+            text.color = primary ? Color.white : ThemeColor(TrainingThemeColor.Brand);
             text.fontStyle = FontStyles.Bold;
             text.fontSize = 26f;
             text.enableAutoSizing = true;
@@ -549,13 +547,13 @@ public class LessonReportUI : MonoBehaviour
     private static int GetReportRowOrder(string objectName)
     {
         if (objectName.StartsWith("Title", StringComparison.OrdinalIgnoreCase)) return 0;
-        if (objectName.IndexOf("NomeDoAluno", StringComparison.OrdinalIgnoreCase) >= 0) return 1;
-        if (objectName.IndexOf("Instrutor", StringComparison.OrdinalIgnoreCase) >= 0) return 2;
+        if (objectName.IndexOf("Student", StringComparison.OrdinalIgnoreCase) >= 0) return 1;
+        if (objectName.IndexOf("Instructor", StringComparison.OrdinalIgnoreCase) >= 0) return 2;
         if (objectName.IndexOf("Data", StringComparison.OrdinalIgnoreCase) >= 0) return 3;
         if (objectName.IndexOf("Training", StringComparison.OrdinalIgnoreCase) >= 0) return 4;
-        if (objectName.IndexOf("Dura", StringComparison.OrdinalIgnoreCase) >= 0) return 5;
-        if (objectName.IndexOf("Porcentagem", StringComparison.OrdinalIgnoreCase) >= 0) return 6;
-        if (objectName.IndexOf("Erro", StringComparison.OrdinalIgnoreCase) >= 0) return 7;
+        if (objectName.IndexOf("Duration", StringComparison.OrdinalIgnoreCase) >= 0) return 5;
+        if (objectName.IndexOf("Percentage", StringComparison.OrdinalIgnoreCase) >= 0) return 6;
+        if (objectName.IndexOf("Error", StringComparison.OrdinalIgnoreCase) >= 0) return 7;
         return 100;
     }
 

@@ -10,6 +10,7 @@ namespace TrainingReports
         Scrim,
         Window,
         Surface,
+        Border,
         Brand,
         PrimaryText,
         SecondaryText,
@@ -55,6 +56,7 @@ namespace TrainingReports
                 case TrainingThemeColor.Scrim: return new TrainingColor(0, 0, 0, 180);
                 case TrainingThemeColor.Window: return new TrainingColor(248, 249, 252);
                 case TrainingThemeColor.Surface: return new TrainingColor(255, 255, 255);
+                case TrainingThemeColor.Border: return new TrainingColor(198, 207, 217, 230);
                 case TrainingThemeColor.Brand: return new TrainingColor(47, 69, 91);
                 case TrainingThemeColor.PrimaryText: return new TrainingColor(35, 41, 48);
                 case TrainingThemeColor.SecondaryText: return new TrainingColor(94, 103, 112);

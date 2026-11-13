@@ -1,3 +1,4 @@
+#if TRAINING_REPORTS_SIMULATOR_TESTS
 using System;
 using System.Reflection;
 using NUnit.Framework;
@@ -305,3 +306,5 @@ public sealed class CropOperationScoringTests
         target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).SetValue(target, value);
     }
 }
+
+#endif

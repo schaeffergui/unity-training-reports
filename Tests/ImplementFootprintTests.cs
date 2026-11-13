@@ -1,3 +1,4 @@
+#if TRAINING_REPORTS_SIMULATOR_TESTS
 using System;
 using System.Reflection;
 using NUnit.Framework;
@@ -344,3 +345,5 @@ public sealed class ImplementFootprintTests
         Assert.That(default(RDImplementFootprint).Contains(Vector3.zero), Is.False);
     }
 }
+
+#endif

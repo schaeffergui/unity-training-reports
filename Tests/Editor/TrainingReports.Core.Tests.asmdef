@@ -1,0 +1,14 @@
+{
+  "name": "TrainingReports.Core.Tests",
+  "rootNamespace": "TrainingReports.Tests",
+  "references": ["TrainingReports.Core", "TrainingReports.Reports"],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "optionalUnityReferences": ["TestAssemblies"]
+}

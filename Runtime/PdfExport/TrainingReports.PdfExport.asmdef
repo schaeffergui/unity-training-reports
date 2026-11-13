@@ -1,0 +1,14 @@
+{
+  "name": "TrainingReports.PdfExport",
+  "rootNamespace": "TrainingReports.PdfExport",
+  "references": ["TrainingReports.Core"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": ["itextsharp.dll"],
+  "autoReferenced": true,
+  "defineConstraints": ["TRAINING_REPORTS_PDF_EXPORT"],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
