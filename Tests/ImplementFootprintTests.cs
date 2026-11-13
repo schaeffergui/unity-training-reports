@@ -150,7 +150,7 @@ public sealed class ImplementFootprintTests
                     for (int i = 0; i < sprayer.WorkAreaCount; i++)
                     {
                         Assert.That(sprayer.TryGetWorkArea(i, out _), Is.True,
-                            "A barra aberta deve manter cobertura contínua nas junções entre as seções.");
+                            "The open boom must keep continuous coverage at the joins between sections.");
                     }
                 }
                 for (int yaw = 0; yaw < 360; yaw += 15)
@@ -163,7 +163,7 @@ public sealed class ImplementFootprintTests
                     content.localRotation = Quaternion.Euler(0f, 0f, rotating ? yaw - 15f : 0f);
                     Set(map, "currentMapRotation", content.localRotation);
                     Call(map, "UpdateMiniMapIcons");
-                    // O marcador do chassi mantém o tamanho visual ao aplicar zoom.
+                    // The chassis marker keeps its visual size when zooming.
                     // Os segmentos da barra abaixo continuam em escala de terreno.
                     Vector2 visibleMarkerSize = bodyIcon.rect.size * (bodyIcon.localScale.x * zoom);
                     Assert.That(Vector2.Distance(visibleMarkerSize, markerSize), Is.LessThan(0.001f));

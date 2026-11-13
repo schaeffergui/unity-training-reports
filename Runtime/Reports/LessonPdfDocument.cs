@@ -14,7 +14,7 @@ public sealed class LessonPdfDocument : IDisposable
     private byte[] bytes;
 
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-    // O DriveInfo usa chamadas não implementadas no IL2CPP; consulta somente o tipo da unidade no Windows.
+    // DriveInfo uses calls that are not implemented in IL2CPP; only queries the drive type on Windows.
     [DllImport("kernel32.dll", EntryPoint = "GetDriveTypeW", CharSet = CharSet.Unicode, ExactSpelling = true)]
     private static extern uint GetDriveType(string rootPath);
 #endif
@@ -47,7 +47,7 @@ public sealed class LessonPdfDocument : IDisposable
         {
             if (stream.Length < 5 || stream.Length > MaxFileBytes)
             {
-                throw new InvalidDataException("O PDF está vazio ou excede o limite de 64 MB.");
+                throw new InvalidDataException("The PDF is empty or exceeds the 64 MB limit.");
             }
 
             data = new byte[(int)stream.Length];
@@ -63,20 +63,20 @@ public sealed class LessonPdfDocument : IDisposable
 
         if (data[0] != '%' || data[1] != 'P' || data[2] != 'D' || data[3] != 'F' || data[4] != '-')
         {
-            throw new InvalidDataException("O arquivo selecionado não é um PDF válido.");
+            throw new InvalidDataException("The selected file is not a valid PDF.");
         }
 
         lock (NativeLock)
         {
             token.ThrowIfCancellationRequested();
-            // O PDFium é global e não é thread-safe; nenhuma operação mantém handles após retornar.
+            // PDFium is global and not thread-safe; no operation keeps handles after returning.
             using (var library = DocLib.Instance)
             using (var reader = library.GetDocReader(data, new PageDimensions(1.0)))
             {
                 int count = reader.GetPageCount();
                 if (count < 1 || count > MaxPages)
                 {
-                    throw new InvalidDataException("O PDF deve conter entre 1 e 512 páginas.");
+                    throw new InvalidDataException("The PDF must contain between 1 and 512 pages.");
                 }
 
                 var sizes = new Vector2[count];
@@ -89,7 +89,7 @@ public sealed class LessonPdfDocument : IDisposable
                         int height = page.GetPageHeight();
                         if (width < 1 || height < 1 || width > 16384 || height > 16384)
                         {
-                            throw new InvalidDataException("O PDF contém uma página com dimensões inválidas.");
+                            throw new InvalidDataException("The PDF contains a page with invalid dimensions.");
                         }
                         sizes[i] = new Vector2(width, height);
                     }
@@ -118,10 +118,10 @@ public sealed class LessonPdfDocument : IDisposable
                 int height = page.GetPageHeight();
                 if (width < 1 || height < 1 || (long)width * height > 8 * 1024 * 1024)
                 {
-                    throw new InvalidDataException("A página excede o limite de memória do visualizador.");
+                    throw new InvalidDataException("The page exceeds the viewer memory limit.");
                 }
 
-                // Sem formulários, JavaScript, links ou anexos: somente os pixels do documento local.
+                // No forms, JavaScript, links or attachments: only the pixels of the local document.
                 byte[] pixels = page.GetImage(RenderFlags.LimitImageCacheSize);
                 token.ThrowIfCancellationRequested();
                 for (int y = 0; y < height; y++)
@@ -182,7 +182,7 @@ public sealed class LessonPdfDocument : IDisposable
                 throw;
             }
         }
-        throw new IOException("Não foi possível criar outra cópia nesta pasta.");
+        throw new IOException("Could not create another copy in this folder.");
     }
 
     private static string ValidateLocalPath(string path, bool mustExist = true)
@@ -190,19 +190,19 @@ public sealed class LessonPdfDocument : IDisposable
         if (string.IsNullOrWhiteSpace(path) || !Path.IsPathFullyQualified(path) || path.StartsWith(@"\\") ||
             path.IndexOf("://", StringComparison.Ordinal) >= 0 || !string.Equals(Path.GetExtension(path), ".pdf", StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidDataException("Selecione um arquivo PDF em uma pasta local.");
+            throw new InvalidDataException("Select a PDF file in a local folder.");
         }
 
         string fullPath = Path.GetFullPath(path);
         string root = Path.GetPathRoot(fullPath);
         if (fullPath.IndexOf(':', root.Length) >= 0)
         {
-            throw new InvalidDataException("Somente arquivos PDF locais são permitidos.");
+            throw new InvalidDataException("Only local PDF files are allowed.");
         }
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
         if (GetDriveType(root) == (uint)DriveType.Network)
         {
-            throw new InvalidDataException("Somente arquivos PDF locais são permitidos.");
+            throw new InvalidDataException("Only local PDF files are allowed.");
         }
 #endif
 
@@ -210,7 +210,7 @@ public sealed class LessonPdfDocument : IDisposable
         {
             if ((File.Exists(current) || Directory.Exists(current)) && (File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)
             {
-                throw new InvalidDataException("Use uma pasta local sem redirecionamentos ou links simbólicos.");
+                throw new InvalidDataException("Use a local folder without redirects or symbolic links.");
             }
         }
         if (mustExist && !File.Exists(fullPath)) throw new FileNotFoundException();
@@ -221,7 +221,7 @@ public sealed class LessonPdfDocument : IDisposable
 
     public void Dispose()
     {
-        // Um trabalho já iniciado libera sua referência ao terminar; fechar a UI nunca espera a renderização nativa.
+        // A job that has already started releases its reference when it ends; closing the UI never waits for native rendering.
         Interlocked.Exchange(ref bytes, null);
     }
 }

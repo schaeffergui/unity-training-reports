@@ -124,8 +124,8 @@ public class LessonReportUI : MonoBehaviour
         backButtonRect = backButton as RectTransform;
         reportButtonRect = reportButton as RectTransform;
 
-        StyleButton(backButton, "VOLTAR", false, BackButtonAnchorMin, BackButtonAnchorMax);
-        StyleButton(reportButton, "VISUALIZAR RELATÓRIO", true, ReportButtonAnchorMin, ReportButtonAnchorMax);
+        StyleButton(backButton, "BACK", false, BackButtonAnchorMin, BackButtonAnchorMax);
+        StyleButton(reportButton, "VIEW REPORT", true, ReportButtonAnchorMin, ReportButtonAnchorMax);
     }
 
     private void StyleBackground(Transform background)
@@ -210,7 +210,7 @@ public class LessonReportUI : MonoBehaviour
         }
 
         TMP_Text title = FindOrCreateText(reportView, "Modern Report Title");
-        title.text = "RELATÓRIO DA AULA";
+        title.text = "LESSON REPORT";
         title.color = RDCompanyPalette.BrandPurple;
         title.fontStyle = FontStyles.Bold;
         title.fontSize = 58f;
@@ -222,7 +222,7 @@ public class LessonReportUI : MonoBehaviour
         SetRect(title.rectTransform, new Vector2(0.25f, 0.825f), new Vector2(0.75f, 0.895f));
 
         TMP_Text subtitle = FindOrCreateText(reportView, "Modern Report Subtitle");
-        subtitle.text = "Resumo do desempenho no treinamento";
+        subtitle.text = "Training performance summary";
         subtitle.color = RDCompanyPalette.SecondaryText;
         subtitle.fontSize = 24f;
         subtitle.enableAutoSizing = true;
@@ -349,7 +349,7 @@ public class LessonReportUI : MonoBehaviour
         for (int i = 0; i < texts.Length; i++)
         {
             TMP_Text text = texts[i];
-            text.text = "AVALIAÇÃO";
+            text.text = "EVALUATION";
             text.color = RDCompanyPalette.BrandPurple;
             text.fontStyle = FontStyles.Bold;
             text.fontSize = 36f;
@@ -552,7 +552,7 @@ public class LessonReportUI : MonoBehaviour
         if (objectName.IndexOf("NomeDoAluno", StringComparison.OrdinalIgnoreCase) >= 0) return 1;
         if (objectName.IndexOf("Instrutor", StringComparison.OrdinalIgnoreCase) >= 0) return 2;
         if (objectName.IndexOf("Data", StringComparison.OrdinalIgnoreCase) >= 0) return 3;
-        if (objectName.IndexOf("Treinamento", StringComparison.OrdinalIgnoreCase) >= 0) return 4;
+        if (objectName.IndexOf("Training", StringComparison.OrdinalIgnoreCase) >= 0) return 4;
         if (objectName.IndexOf("Dura", StringComparison.OrdinalIgnoreCase) >= 0) return 5;
         if (objectName.IndexOf("Porcentagem", StringComparison.OrdinalIgnoreCase) >= 0) return 6;
         if (objectName.IndexOf("Erro", StringComparison.OrdinalIgnoreCase) >= 0) return 7;

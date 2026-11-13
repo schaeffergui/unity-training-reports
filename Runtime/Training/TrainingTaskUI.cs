@@ -139,12 +139,12 @@ public class TrainingTaskUI : MonoBehaviour
         for (int i = 0; i < texts.Length; i++)
         {
             TextMeshProUGUI text = texts[i];
-            if (text.transform.parent != transform || !text.text.Trim().StartsWith("Tarefas"))
+            if (text.transform.parent != transform || !text.text.Trim().StartsWith("Tasks"))
             {
                 continue;
             }
 
-            text.text = "TAREFAS";
+            text.text = "TASKS";
             text.color = RDCompanyPalette.BrandPurple;
             text.fontSize = 38f;
             text.fontStyle = FontStyles.Bold;
@@ -342,7 +342,7 @@ public class TrainingTaskUI : MonoBehaviour
             {
                 taskStatuses[index] = TaskStatus.Completed;
                 var task = tasks[index];
-                SetTaskState(task, $"Tarefa {index + 1}: Concluída", task.completedColor, task.completedSprite);
+                SetTaskState(task, $"Task {index + 1}: Completed", task.completedColor, task.completedSprite);
             }
         }
         else
@@ -351,7 +351,7 @@ public class TrainingTaskUI : MonoBehaviour
             {
                 taskStatuses[index] = TaskStatus.Incompleted;
                 var task = tasks[index];
-                SetTaskState(task, $"Tarefa {index + 1}: Não concluída", task.incompletedColor, task.incompletedSprite);
+                SetTaskState(task, $"Task {index + 1}: Not completed", task.incompletedColor, task.incompletedSprite);
             }
         }
         TrainingManager.Instance.OnTaskFinished(index, isCompleted);

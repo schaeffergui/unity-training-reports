@@ -84,7 +84,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
         var prefab = Resources.Load<LessonPdfViewer>("UI/LessonPdfViewer");
         if (prefab == null)
         {
-            Debug.LogError("O visualizador de PDF não foi incluído no jogo.");
+            Debug.LogError("The PDF viewer was not included in the game.");
             return;
         }
         var viewer = Instantiate(prefab);
@@ -130,7 +130,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
     {
         CancellationToken token = lifetime.Token;
         LessonPdfDocument loaded = null;
-        SetLoading("Carregando relatório...");
+        SetLoading("Loading report...");
         retryButton.gameObject.SetActive(false);
         try
         {
@@ -308,7 +308,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
         }
         pageImage.rectTransform.sizeDelta = size * zoom;
         content.sizeDelta = Vector2.Max(size * zoom + Vector2.one * 40f, scroll.viewport.rect.size);
-        pageLabel.text = "Página " + (pageIndex + 1) + " de " + document.PageSizes.Length;
+        pageLabel.text = "Page " + (pageIndex + 1) + " of " + document.PageSizes.Length;
         zoomLabel.text = Mathf.RoundToInt(zoom * 100f) + "%";
         previousButton.interactable = pageIndex > 0;
         nextButton.interactable = pageIndex < document.PageSizes.Length - 1;
@@ -317,7 +317,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
         fitPageButton.interactable = fitWidthButton.interactable = true;
         saveButton.interactable = !saving;
         retryButton.gameObject.SetActive(false);
-        SetLoading("Renderizando página " + (pageIndex + 1) + "...");
+        SetLoading("Rendering page " + (pageIndex + 1) + "...");
         renderAt = Time.unscaledTime + 0.12f;
     }
 
@@ -338,7 +338,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
             if (token.IsCancellationRequested || this == null || closed || version != requestVersion) return;
             ReleaseTexture();
             pageTexture = new Texture2D(rendered.Width, rendered.Height, TextureFormat.RGBA32, false);
-            pageTexture.name = "Página do relatório";
+            pageTexture.name = "Report page";
             pageTexture.filterMode = FilterMode.Bilinear;
             pageTexture.wrapMode = TextureWrapMode.Clamp;
             pageTexture.LoadRawTextureData(rendered.Pixels);
@@ -346,7 +346,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
             pageImage.texture = pageTexture;
             pageImage.enabled = true;
             loadingPanel.SetActive(false);
-            statusLabel.text = "Roda do mouse ou setas: rolar  ·  Tab: controles  ·  + / −: zoom  ·  Esc: fechar";
+            statusLabel.text = "Mouse wheel or arrows: scroll  ·  Tab: controls  ·  + / −: zoom  ·  Esc: close";
         }
         catch (OperationCanceledException) { }
         catch (Exception exception)
@@ -366,19 +366,19 @@ public sealed class LessonPdfViewer : MonoBehaviour
         if (document == null || saving || closed) return;
         saving = true;
         saveButton.interactable = false;
-        statusLabel.text = "Salvando cópia...";
+        statusLabel.text = "Saving copy...";
         CancellationToken token = lifetime.Token;
         var currentDocument = document;
-        string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Relatorios Das Aulas", "Copias");
+        string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Lesson Reports", "Copias");
         try
         {
             string destination = await Task.Run(() => currentDocument.SaveCopy(folder, token), token);
-            if (!token.IsCancellationRequested && this != null && !closed) statusLabel.text = "Cópia salva em: " + destination;
+            if (!token.IsCancellationRequested && this != null && !closed) statusLabel.text = "Copy saved to: " + destination;
         }
         catch (OperationCanceledException) { }
         catch (Exception)
         {
-            if (!token.IsCancellationRequested && this != null && !closed) statusLabel.text = "Não foi possível salvar a cópia. Verifique o espaço e as permissões da pasta Documentos.";
+            if (!token.IsCancellationRequested && this != null && !closed) statusLabel.text = "Could not save the copy. Check the free space and the permissions of the Documents folder.";
         }
         finally
         {
@@ -403,14 +403,14 @@ public sealed class LessonPdfViewer : MonoBehaviour
     private void ShowError(Exception exception)
     {
         ReleaseTexture();
-        SetLoading(exception is FileNotFoundException || exception is DirectoryNotFoundException ? "O arquivo PDF não foi encontrado."
-            : exception is PlatformNotSupportedException ? "O visualizador está disponível no Windows de 64 bits."
-            : exception is DllNotFoundException || exception is BadImageFormatException || exception is EntryPointNotFoundException ? "O renderizador local de PDF não está disponível nesta instalação."
+        SetLoading(exception is FileNotFoundException || exception is DirectoryNotFoundException ? "The PDF file was not found."
+            : exception is PlatformNotSupportedException ? "The viewer is available on 64-bit Windows."
+            : exception is DllNotFoundException || exception is BadImageFormatException || exception is EntryPointNotFoundException ? "The local PDF renderer is not available in this installation."
             : exception is InvalidDataException ? exception.Message
-            : "Não foi possível abrir o PDF. O arquivo pode estar danificado, protegido por senha ou sem permissão de leitura.");
+            : "Could not open the PDF. The file may be damaged, password-protected or unreadable.");
         loadingLabel.color = RDCompanyPalette.Warning;
         retryButton.gameObject.SetActive(true);
-        statusLabel.text = "O relatório original permanece salvo na pasta Documentos.";
+        statusLabel.text = "The original report remains saved in the Documents folder.";
         Debug.LogWarning("Falha no visualizador local de PDF: " + exception.GetType().Name);
     }
 
@@ -488,7 +488,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
 
     private void BuildUI()
     {
-        gameObject.name = "Visualizador de relatório";
+        gameObject.name = "Report viewer";
         canvas = gameObject.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 32000;
@@ -501,7 +501,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
         Stretch(scrim.rectTransform, Vector2.zero, Vector2.zero);
         panel = Image("Documento", transform, RDCompanyPalette.LightWindow).rectTransform;
         Place(panel, Vector2.one * 0.5f, Vector2.zero, Vector2.one * 0.5f, new Vector2(1620f, 1032f));
-        TMP_Text title = Text("Relatório da aula", panel, 36f, RDCompanyPalette.BrandPurple);
+        TMP_Text title = Text("Lesson report", panel, 36f, RDCompanyPalette.BrandPurple);
         StretchTop(title.rectTransform, 24f, -24f, -200f, 48f);
         title.fontStyle = FontStyles.Bold;
         title.alignment = TextAlignmentOptions.MidlineLeft;
@@ -509,34 +509,34 @@ public sealed class LessonPdfViewer : MonoBehaviour
         StretchTop(fileLabel.rectTransform, 24f, -76f, -24f, 32f);
         fileLabel.alignment = TextAlignmentOptions.MidlineLeft;
         fileLabel.overflowMode = TextOverflowModes.Ellipsis;
-        closeButton = Button("FECHAR", panel, Close);
+        closeButton = Button("CLOSE", panel, Close);
         Place((RectTransform)closeButton.transform, new Vector2(1f, 1f), new Vector2(-24f, -24f), new Vector2(1f, 1f), new Vector2(150f, 56f));
 
-        pageRow = Rect("Páginas", panel);
+        pageRow = Rect("Pages", panel);
         Row(pageRow, 8f);
-        previousButton = Button("‹ Anterior", pageRow, () => ChangePage(-1), 126f);
-        pageLabel = Text("Página — de —", pageRow, 22f, RDCompanyPalette.DenseText);
+        previousButton = Button("‹ Previous", pageRow, () => ChangePage(-1), 126f);
+        pageLabel = Text("Page — of —", pageRow, 22f, RDCompanyPalette.DenseText);
         Element(pageLabel.gameObject, 166f);
-        nextButton = Button("Próxima ›", pageRow, () => ChangePage(1), 126f);
-        zoomRow = Rect("Ampliação", panel);
+        nextButton = Button("Next ›", pageRow, () => ChangePage(1), 126f);
+        zoomRow = Rect("Zoom", panel);
         Row(zoomRow, 8f);
         zoomOutButton = Button("−", zoomRow, () => ChangeZoom(-1), 56f);
         zoomLabel = Text("—%", zoomRow, 22f, RDCompanyPalette.DenseText);
         Element(zoomLabel.gameObject, 80f);
         zoomInButton = Button("+", zoomRow, () => ChangeZoom(1), 56f);
-        fitPageButton = Button("AJUSTAR PÁGINA", zoomRow, FitPage, 0f);
+        fitPageButton = Button("FIT PAGE", zoomRow, FitPage, 0f);
         fitWidthButton = Button("AJUSTAR LARGURA", zoomRow, FitWidth, 0f);
 
-        var scrollObject = Image("Área de leitura", panel, RDCompanyPalette.NeutralControl);
+        var scrollObject = Image("Reading area", panel, RDCompanyPalette.NeutralControl);
         scroll = scrollObject.gameObject.AddComponent<ScrollRect>();
         scroll.movementType = ScrollRect.MovementType.Clamped;
         scroll.inertia = false;
-        var viewport = Image("Página visível", scroll.transform, Color.clear, false).rectTransform;
+        var viewport = Image("Visible page", scroll.transform, Color.clear, false).rectTransform;
         Stretch(viewport, new Vector2(0f, 22f), new Vector2(-22f, 0f));
         viewport.gameObject.AddComponent<RectMask2D>();
-        content = Rect("Conteúdo", viewport);
+        content = Rect("Content", viewport);
         Place(content, new Vector2(0f, 1f), Vector2.zero, new Vector2(0f, 1f), Vector2.zero);
-        pageImage = Rect("Página PDF", content).gameObject.AddComponent<RawImage>();
+        pageImage = Rect("PDF page", content).gameObject.AddComponent<RawImage>();
         Place(pageImage.rectTransform, Vector2.one * 0.5f, Vector2.zero, Vector2.one * 0.5f, Vector2.zero);
         pageImage.uvRect = new Rect(0f, 1f, 1f, -1f);
         pageImage.raycastTarget = false;
@@ -549,7 +549,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
 
         loadingPanel = Image("Estado de leitura", panel, RDCompanyPalette.Surface).gameObject;
         Place((RectTransform)loadingPanel.transform, Vector2.one * 0.5f, Vector2.zero, Vector2.one * 0.5f, new Vector2(480f, 248f));
-        loadingLabel = Text("Carregando relatório...", loadingPanel.transform, 25f, RDCompanyPalette.BrandPurple);
+        loadingLabel = Text("Loading report...", loadingPanel.transform, 25f, RDCompanyPalette.BrandPurple);
         Stretch(loadingLabel.rectTransform, new Vector2(20f, 76f), new Vector2(-20f, -16f));
         retryButton = Button("TENTAR NOVAMENTE", loadingPanel.transform, Retry);
         Place((RectTransform)retryButton.transform, new Vector2(0.5f, 0f), new Vector2(0f, 16f), new Vector2(0.5f, 0f), new Vector2(300f, 52f));
@@ -558,11 +558,11 @@ public sealed class LessonPdfViewer : MonoBehaviour
         statusLabel = Text("", panel, 20f, RDCompanyPalette.SecondaryText);
         statusLabel.overflowMode = TextOverflowModes.Ellipsis;
         Stretch(statusLabel.rectTransform, new Vector2(24f, 96f), new Vector2(-24f, 144f), true);
-        footer = Rect("Ações", panel);
+        footer = Rect("Actions", panel);
         Place(footer, new Vector2(0.5f, 0f), new Vector2(0f, 24f), new Vector2(0.5f, 0f), new Vector2(520f, 60f));
         Row(footer, 16f);
-        Button("VOLTAR", footer, Close);
-        saveButton = Button("SALVAR CÓPIA", footer, SaveCopyAsync, 0f, RDCompanySelectableStyle.Role.Primary);
+        Button("BACK", footer, Close);
+        saveButton = Button("SAVE COPY", footer, SaveCopyAsync, 0f, RDCompanySelectableStyle.Role.Primary);
         previousButton.interactable = nextButton.interactable = zoomOutButton.interactable = zoomInButton.interactable = false;
         fitPageButton.interactable = fitWidthButton.interactable = saveButton.interactable = false;
 
