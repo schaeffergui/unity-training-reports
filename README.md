@@ -24,10 +24,14 @@ You can also add the package to `Packages/manifest.json`:
 - Unity 6 (`6000.0` or newer).
 - `com.unity.ugui`, declared as a package dependency. The UI scripts also use Unity's TextMeshPro assembly.
 - No simulator SDK, Rewired, or Vehicle Physics Pro dependency is required by the package assemblies.
-- The in-game PDF viewer is optional. Add `Docnet.Core.dll` to the host project and define `TRAINING_REPORTS_PDF` to compile `TrainingReports.Pdf`.
+- The in-game PDF viewer is optional. Add `Docnet.Core.dll` and the native PDFium library (`pdfium.dll` on Windows) to the host project and define `TRAINING_REPORTS_PDF` to compile `TrainingReports.Pdf`. Native and managed libraries are not included in this package.
 - PDF export is optional. Add the iTextSharp 5.x assembly as `itextsharp.dll` and define `TRAINING_REPORTS_PDF_EXPORT` to compile `TrainingReports.PdfExport`. iTextSharp is not included in this package; review its LGPL/AGPL licensing terms before distributing it.
 
 The PDF viewer and exporter are disabled when their scripting symbols are absent, so projects can use the Core, Reports, and Training assemblies without those optional libraries.
+
+## PDF viewer
+
+Call `LessonPdfViewer.Open(localPdfPath)` to show a local report. If a `Resources/UI/LessonPdfViewer` prefab is present, the viewer uses it as an optional visual override; otherwise it builds a uGUI panel, page display, navigation controls, zoom controls, page counter, and status labels at runtime. The fallback uses Unity's built-in `LegacyRuntime.ttf` font and does not need a prefab or TextMeshPro assets. Install the native PDFium library for each target platform alongside `Docnet.Core.dll`; this package does not ship either library.
 
 ## Package architecture
 
@@ -63,8 +67,9 @@ The package includes EditMode tests for report inputs, observation thresholds, t
 
 ## Verification status
 
-- Core, Reports, and Training compiled in Unity `6000.2.1f1` with optional PDF scripting symbols off.
-- The sample adapter assembly compiled when imported into the consumer project. It has not been exercised in a real simulator.
-- The PDF viewer has not been compiled with `Docnet.Core.dll` in the consumer project.
-- The PDF exporter has not been compiled with iTextSharp and `TRAINING_REPORTS_PDF_EXPORT` enabled.
-- No `MinimalLesson` scene is included yet.
+- Unity `6000.2.1f1` compiled the consumer with `TRAINING_REPORTS_PDF` and `TRAINING_REPORTS_PDF_EXPORT` enabled; the Console reported no compile errors. The consumer imported Docnet, iTextSharp, BouncyCastle, and the user-supplied Windows x86_64 `pdfium.dll`.
+- All **25/25 EditMode tests passed** with both optional symbols enabled.
+- The exporter produced a four-page sample PDF in the consumer project's ignored `Temp/TrainingReportsValidation` folder.
+- In Play Mode, the viewer opened the sample, Docnet reported 4 pages, and invoking Next advanced the counter to Page 2 of 4. At a 2× display scale, the viewer rendered page 2 to **1746x2472** while preserving the PDF page's portrait aspect ratio. Rendering is capped at 2880 pixels on the long edge and 8 million pixels per page.
+- A fresh **3840x2160** Play Mode capture showed the fallback viewer panel, PDF page, previous/next and zoom controls, close/back/save controls, and the Page 2 of 4 counter. The fallback UI has rounded surfaces generated at runtime; a `Resources/UI/LessonPdfViewer` prefab can still provide a visual override.
+- The three third-party DLLs and the Scripting Define Symbols are local to the separate consumer project and are not part of this package repository. No simulator behavior has been exercised, and no `MinimalLesson` scene is included.
