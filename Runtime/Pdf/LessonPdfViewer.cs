@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
@@ -15,7 +14,6 @@ using TrainingReports;
 public sealed class LessonPdfViewer : MonoBehaviour
 {
     [SerializeField] private Sprite roundedSprite;
-    [SerializeField] private TMP_FontAsset font;
 
     public static ITrainingTheme Theme { get; set; } = DefaultTrainingTheme.Instance;
 
@@ -36,11 +34,11 @@ public sealed class LessonPdfViewer : MonoBehaviour
     private RectTransform content;
     private ScrollRect scroll;
     private RawImage pageImage;
-    private TMP_Text fileLabel;
-    private TMP_Text pageLabel;
-    private TMP_Text zoomLabel;
-    private TMP_Text statusLabel;
-    private TMP_Text loadingLabel;
+    private Text fileLabel;
+    private Text pageLabel;
+    private Text zoomLabel;
+    private Text statusLabel;
+    private Text loadingLabel;
     private GameObject loadingPanel;
     private Button previousButton;
     private Button nextButton;
@@ -80,12 +78,16 @@ public sealed class LessonPdfViewer : MonoBehaviour
         if (IsOpen && string.Equals(instance.sourcePath, path, StringComparison.OrdinalIgnoreCase)) return;
         if (IsOpen) instance.Close();
         var prefab = Resources.Load<LessonPdfViewer>("UI/LessonPdfViewer");
-        if (prefab == null)
+        LessonPdfViewer viewer;
+        if (prefab != null)
         {
-            Debug.LogError("The PDF viewer was not included in the game.");
-            return;
+            viewer = Instantiate(prefab);
         }
-        var viewer = Instantiate(prefab);
+        else
+        {
+            var root = new GameObject("Lesson PDF Viewer", typeof(RectTransform));
+            viewer = root.AddComponent<LessonPdfViewer>();
+        }
         viewer.sourcePath = path;
         viewer.LoadAsync();
     }
@@ -475,14 +477,14 @@ public sealed class LessonPdfViewer : MonoBehaviour
         Stretch(scrim.rectTransform, Vector2.zero, Vector2.zero);
         panel = Image("Document", transform, ThemeColor(TrainingThemeColor.Window)).rectTransform;
         Place(panel, Vector2.one * 0.5f, Vector2.zero, Vector2.one * 0.5f, new Vector2(1620f, 1032f));
-        TMP_Text title = Text("Lesson report", panel, 36f, ThemeColor(TrainingThemeColor.Brand));
+        Text title = Text("Lesson report", panel, 36f, ThemeColor(TrainingThemeColor.Brand));
         StretchTop(title.rectTransform, 24f, -24f, -200f, 48f);
-        title.fontStyle = FontStyles.Bold;
-        title.alignment = TextAlignmentOptions.MidlineLeft;
+        title.fontStyle = FontStyle.Bold;
+        title.alignment = TextAnchor.MiddleLeft;
         fileLabel = Text("Local PDF document", panel, 21f, ThemeColor(TrainingThemeColor.SecondaryText));
         StretchTop(fileLabel.rectTransform, 24f, -76f, -24f, 32f);
-        fileLabel.alignment = TextAlignmentOptions.MidlineLeft;
-        fileLabel.overflowMode = TextOverflowModes.Ellipsis;
+        fileLabel.alignment = TextAnchor.MiddleLeft;
+        fileLabel.horizontalOverflow = HorizontalWrapMode.Wrap; fileLabel.verticalOverflow = VerticalWrapMode.Truncate;
         closeButton = Button("CLOSE", panel, Close);
         Place((RectTransform)closeButton.transform, new Vector2(1f, 1f), new Vector2(-24f, -24f), new Vector2(1f, 1f), new Vector2(150f, 56f));
 
@@ -530,7 +532,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
         retryButton.gameObject.SetActive(false);
 
         statusLabel = Text("", panel, 20f, ThemeColor(TrainingThemeColor.SecondaryText));
-        statusLabel.overflowMode = TextOverflowModes.Ellipsis;
+        statusLabel.horizontalOverflow = HorizontalWrapMode.Wrap; statusLabel.verticalOverflow = VerticalWrapMode.Truncate;
         Stretch(statusLabel.rectTransform, new Vector2(24f, 96f), new Vector2(-24f, 144f), true);
         footer = Rect("Actions", panel);
         Place(footer, new Vector2(0.5f, 0f), new Vector2(0f, 24f), new Vector2(0.5f, 0f), new Vector2(520f, 60f));
@@ -583,7 +585,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
         button.onClick.AddListener(action);
         var text = Text(label, image.transform, 22f, ThemeColor(textColor));
         Stretch(text.rectTransform, new Vector2(8f, 4f), new Vector2(-8f, -4f));
-        text.fontStyle = FontStyles.Bold;
+        text.fontStyle = FontStyle.Bold;
         var outline = image.gameObject.AddComponent<Outline>();
         outline.effectColor = ThemeColor(TrainingThemeColor.Brand);
         var colors = button.colors;
@@ -606,24 +608,28 @@ public sealed class LessonPdfViewer : MonoBehaviour
     {
         var image = Rect(name, parent).gameObject.AddComponent<Image>();
         image.color = color;
-        if (rounded)
+        if (rounded && roundedSprite != null)
         {
             image.sprite = roundedSprite;
             image.type = UnityEngine.UI.Image.Type.Sliced;
         }
+        else
+        {
+            image.type = UnityEngine.UI.Image.Type.Simple;
+        }
         return image;
     }
 
-    private TMP_Text Text(string text, Transform parent, float size, Color color)
+    private Text Text(string text, Transform parent, float size, Color color)
     {
-        var label = Rect(text, parent).gameObject.AddComponent<TextMeshProUGUI>();
-        label.font = font;
+        var label = Rect(text, parent).gameObject.AddComponent<Text>();
+        label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         label.text = text;
-        label.fontSize = size;
+        label.fontSize = Mathf.RoundToInt(size);
         label.color = color;
-        label.alignment = TextAlignmentOptions.Center;
+        label.alignment = TextAnchor.MiddleCenter;
         label.raycastTarget = false;
-        label.richText = false;
+        label.supportRichText = false;
         return label;
     }
 

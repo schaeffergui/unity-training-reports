@@ -24,10 +24,14 @@ You can also add the package to `Packages/manifest.json`:
 - Unity 6 (`6000.0` or newer).
 - `com.unity.ugui`, declared as a package dependency. The UI scripts also use Unity's TextMeshPro assembly.
 - No simulator SDK, Rewired, or Vehicle Physics Pro dependency is required by the package assemblies.
-- The in-game PDF viewer is optional. Add `Docnet.Core.dll` to the host project and define `TRAINING_REPORTS_PDF` to compile `TrainingReports.Pdf`.
+- The in-game PDF viewer is optional. Add `Docnet.Core.dll` and the native PDFium library (`pdfium.dll` on Windows) to the host project and define `TRAINING_REPORTS_PDF` to compile `TrainingReports.Pdf`. Native and managed libraries are not included in this package.
 - PDF export is optional. Add the iTextSharp 5.x assembly as `itextsharp.dll` and define `TRAINING_REPORTS_PDF_EXPORT` to compile `TrainingReports.PdfExport`. iTextSharp is not included in this package; review its LGPL/AGPL licensing terms before distributing it.
 
 The PDF viewer and exporter are disabled when their scripting symbols are absent, so projects can use the Core, Reports, and Training assemblies without those optional libraries.
+
+## PDF viewer
+
+Call `LessonPdfViewer.Open(localPdfPath)` to show a local report. If a `Resources/UI/LessonPdfViewer` prefab is present, the viewer uses it as an optional visual override; otherwise it builds a uGUI panel, page display, navigation controls, zoom controls, page counter, and status labels at runtime. The fallback uses Unity's built-in `LegacyRuntime.ttf` font and does not need a prefab or TextMeshPro assets. Install the native PDFium library for each target platform alongside `Docnet.Core.dll`; this package does not ship either library.
 
 ## Package architecture
 
@@ -63,10 +67,9 @@ The package includes EditMode tests for report inputs, observation thresholds, t
 
 ## Verification status
 
-- Unity `6000.2.1f1` compiled the package in the consumer project with both `TRAINING_REPORTS_PDF` and `TRAINING_REPORTS_PDF_EXPORT` enabled. The Console reported no compile errors after the exporter fixes.
+- Unity `6000.2.1f1` compiled the consumer with `TRAINING_REPORTS_PDF` and `TRAINING_REPORTS_PDF_EXPORT` enabled; the Console reported no compile errors. The consumer imported Docnet, iTextSharp, BouncyCastle, and the user-supplied Windows x86_64 `pdfium.dll`.
 - All **25/25 EditMode tests passed** with both optional symbols enabled.
-- The exporter generated a four-page sample PDF in the consumer project's ignored `Temp/TrainingReportsValidation` folder.
-- The viewer assembly compiled, but opening/rendering the generated PDF failed during Docnet initialization with `DllNotFoundException`: the native PDFium library (`pdfium.dll`) is missing from the consumer project. The `Assets/Plugins/PDF` folder contains the three managed DLLs only.
-- The package does not include the `Resources/UI/LessonPdfViewer` prefab required by `LessonPdfViewer.Open`, so the in-game viewer UI was not opened or visually checked.
-- The sample adapter has not been exercised in a real simulator. No `MinimalLesson` scene is included yet.
-- The consumer's Scripting Define Symbols were changed locally for this validation only; the three third-party DLLs remain in the separate consumer project and are not included in the package repository.
+- The exporter produced a four-page sample PDF in the consumer project's ignored `Temp/TrainingReportsValidation` folder.
+- In Play Mode, the viewer opened the sample, Docnet reported 4 pages, and invoking the Next control advanced the counter to Page 2 of 4. The viewer assigned a **202x287** page texture; a separate full-size Docnet render of page 2 measured **542x768**.
+- Unity's Game View screenshot capture remained on an earlier `Rendering page 1...` frame despite the runtime state showing page 2 loaded, so the on-screen image presentation was not independently confirmed from a fresh screenshot.
+- The three third-party DLLs and the Scripting Define Symbols are local to the separate consumer project and are not part of this package repository. No simulator behavior has been exercised, and no `MinimalLesson` scene is included.
