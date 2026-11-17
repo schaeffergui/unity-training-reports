@@ -54,7 +54,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
     private EventSystem previousSystem;
     private GameObject previousSelection;
     private ITrainingTheme theme;
-    private FitMode fitMode;
+    private FitMode fitMode = FitMode.Width;
     private int pageIndex;
     private int requestVersion;
     private int navigationDirection;
@@ -673,7 +673,7 @@ public sealed class LessonPdfViewer : MonoBehaviour
         }
         texture.SetPixels32(pixels);
         texture.Apply(false, true);
-        return Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), 1f, 0, SpriteMeshType.FullRect, new Vector4(radius, radius, radius, radius));
+        return Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, new Vector4(radius, radius, radius, radius));
     }
 
     private Text Text(string text, Transform parent, float size, Color color)
