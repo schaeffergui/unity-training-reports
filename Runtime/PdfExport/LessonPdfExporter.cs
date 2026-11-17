@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using iTextSharp.text;
+using Font = iTextSharp.text.Font;
 using iTextSharp.text.pdf;
 using TrainingReports;
 using UnityEngine;
@@ -239,7 +240,7 @@ namespace TrainingReports.PdfExport
                 DrawRouteLegend(writer.DirectContent, document, report.Operation);
                 return;
             }
-            iTextImage image = iTextImage.GetInstance(route.ImagePng);
+            Image image = Image.GetInstance(route.ImagePng);
             float maxWidth = document.PageSize.Width - document.LeftMargin - document.RightMargin;
             float maxHeight = document.PageSize.Height - document.TopMargin - document.BottomMargin - 170f;
             image.ScaleToFit(maxWidth, maxHeight);
@@ -315,7 +316,7 @@ namespace TrainingReports.PdfExport
         private static void AddSignatureRow(Document document, string label)
         {
             var table = new PdfPTable(1) { WidthPercentage = 78, HorizontalAlignment = Element.ALIGN_CENTER, SpacingAfter = 16f };
-            var line = new PdfPCell(new Phrase(" ")) { Border = Rectangle.BOTTOM, BorderColor = Border, FixedHeight = 42f }; table.AddCell(line);
+            var line = new PdfPCell(new Phrase(" ")) { Border = Rectangle.BOTTOM_BORDER, BorderColor = Border, FixedHeight = 42f }; table.AddCell(line);
             var caption = new PdfPCell(new Phrase(label, new Font(Font.FontFamily.HELVETICA, 10f, Font.NORMAL, Muted))) { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_CENTER, PaddingTop = 7f }; table.AddCell(caption); document.Add(table);
         }
 

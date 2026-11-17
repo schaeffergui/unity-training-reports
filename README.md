@@ -63,8 +63,10 @@ The package includes EditMode tests for report inputs, observation thresholds, t
 
 ## Verification status
 
-- Core, Reports, and Training compiled in Unity `6000.2.1f1` with optional PDF scripting symbols off.
-- The sample adapter assembly compiled when imported into the consumer project. It has not been exercised in a real simulator.
-- The PDF viewer has not been compiled with `Docnet.Core.dll` in the consumer project.
-- The PDF exporter has not been compiled with iTextSharp and `TRAINING_REPORTS_PDF_EXPORT` enabled.
-- No `MinimalLesson` scene is included yet.
+- Unity `6000.2.1f1` compiled the package in the consumer project with both `TRAINING_REPORTS_PDF` and `TRAINING_REPORTS_PDF_EXPORT` enabled. The Console reported no compile errors after the exporter fixes.
+- All **25/25 EditMode tests passed** with both optional symbols enabled.
+- The exporter generated a four-page sample PDF in the consumer project's ignored `Temp/TrainingReportsValidation` folder.
+- The viewer assembly compiled, but opening/rendering the generated PDF failed during Docnet initialization with `DllNotFoundException`: the native PDFium library (`pdfium.dll`) is missing from the consumer project. The `Assets/Plugins/PDF` folder contains the three managed DLLs only.
+- The package does not include the `Resources/UI/LessonPdfViewer` prefab required by `LessonPdfViewer.Open`, so the in-game viewer UI was not opened or visually checked.
+- The sample adapter has not been exercised in a real simulator. No `MinimalLesson` scene is included yet.
+- The consumer's Scripting Define Symbols were changed locally for this validation only; the three third-party DLLs remain in the separate consumer project and are not included in the package repository.
