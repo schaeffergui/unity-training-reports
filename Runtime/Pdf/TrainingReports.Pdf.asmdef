@@ -3,7 +3,6 @@
   "rootNamespace": "TrainingReports.Pdf",
   "references": [
     "TrainingReports.Core",
-    "Unity.TextMeshPro",
     "Unity.ugui"
   ],
   "includePlatforms": [],
